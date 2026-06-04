@@ -22,7 +22,7 @@ export function Topbar() {
   const { search, setSearch } = useDashboardStore();
   const { user, logout } = useAuth();
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild className="lg:hidden">
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -52,11 +52,13 @@ export function Topbar() {
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="ml-1 flex h-8 items-center gap-2 rounded-md px-1.5 transition-colors hover:bg-accent">
+            <button className="ml-1 flex h-8 items-center gap-2 rounded-md px-1.5 transition-all duration-150 hover:bg-accent/50">
               <div className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
                 {user ? initials(user.name) : "?"}
               </div>
-              <span className="hidden text-sm font-medium sm:inline">{user?.name?.split(" ")[0] ?? "User"}</span>
+              <span className="hidden text-sm font-medium sm:inline">
+                {user?.name?.split(" ")[0] ?? "User"}
+              </span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">

@@ -29,7 +29,11 @@ export function PasswordInput(props: PasswordInputProps) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
-      <Input {...props} type={show ? "text" : "password"} placeholder={props.placeholder ?? "••••••••"} />
+      <Input
+        {...props}
+        type={show ? "text" : "password"}
+        placeholder={props.placeholder ?? "••••••••"}
+      />
       <button
         type="button"
         aria-label="toggle password"
@@ -48,11 +52,16 @@ type SubmitButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 export function SubmitButton({ loading, children, className, ...rest }: SubmitButtonProps) {
   return (
-    <Button type="submit" disabled={loading || rest.disabled} className={cn("h-10 w-full", className)} {...rest}>
+    <Button
+      type="submit"
+      disabled={loading || rest.disabled}
+      className={cn("h-10 w-full", className)}
+      {...rest}
+    >
       {loading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Please wait…
+          Please wait
         </>
       ) : (
         children

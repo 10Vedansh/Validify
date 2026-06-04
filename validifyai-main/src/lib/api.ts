@@ -42,7 +42,9 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 api.interceptors.response.use(
   (res) => res,
-  async (error: AxiosError<{ message?: string; code?: string; details?: Record<string, unknown> }>) => {
+  async (
+    error: AxiosError<{ message?: string; code?: string; details?: Record<string, unknown> }>,
+  ) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry && refreshTokenFn) {
@@ -83,9 +85,7 @@ api.interceptors.response.use(
 
     const normalized: ApiError = {
       message:
-        error.response?.data?.message ??
-        error.message ??
-        "Something went wrong. Please try again.",
+        error.response?.data?.message ?? error.message ?? "Something went wrong. Please try again.",
       status: error.response?.status,
       code: error.response?.data?.code ?? error.code,
       details: error.response?.data?.details,

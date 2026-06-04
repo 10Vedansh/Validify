@@ -20,7 +20,7 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       </div>
       <nav className="flex-1 space-y-0.5 px-2">
-        <div className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <div className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
           Workspace
         </div>
         {dashboardNav.map((it) => {
@@ -31,13 +31,15 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
               to={it.to}
               onClick={onNavigate}
               className={cn(
-                "group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-colors",
+                "group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-all duration-150",
                 active
                   ? "bg-sidebar-accent text-foreground"
                   : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
               )}
             >
-              <it.icon className={cn("h-4 w-4", active ? "text-foreground" : "text-muted-foreground")} />
+              <it.icon
+                className={cn("h-4 w-4", active ? "text-foreground" : "text-muted-foreground")}
+              />
               <span className="flex-1">{it.label}</span>
               {it.shortcut && (
                 <kbd className="hidden font-mono text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:inline">
@@ -49,8 +51,8 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
       <div className="border-t border-border p-3">
-        <div className="rounded-md border border-border bg-card p-3">
-          <div className="text-xs font-medium">Upgrade to Pro</div>
+        <div className="rounded-lg border border-border bg-card p-3">
+          <div className="text-xs font-medium text-foreground">Upgrade to Pro</div>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Unlimited validations, decks, and a higher rate-limit on co-founder chat.
           </p>

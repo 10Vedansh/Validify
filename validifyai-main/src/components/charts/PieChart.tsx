@@ -16,7 +16,15 @@ export function PieChart({
     <div style={{ width: "100%", height }}>
       <ResponsiveContainer>
         <RPieChart>
-          <Pie data={data} dataKey={dataKey} nameKey={nameKey} innerRadius={56} outerRadius={88} paddingAngle={2} stroke="none">
+          <Pie
+            data={data}
+            dataKey={dataKey}
+            nameKey={nameKey}
+            innerRadius={56}
+            outerRadius={88}
+            paddingAngle={2}
+            stroke="none"
+          >
             {data.map((_, i) => (
               <Cell key={i} fill={chartSeries[i % chartSeries.length]} />
             ))}

@@ -5,11 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --radius-xs: calc(var(--radius) - 6px);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -48,60 +50,56 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-/* Restrained, Linear/Vercel-inspired dark palette.
-   Neutral zinc surfaces, a single indigo accent, no rainbow chart colors. */
 :root {
   --radius: 0.625rem;
 
-  --background: oklch(0.145 0.005 270);
+  --background: oklch(0.13 0.004 270);
   --foreground: oklch(0.97 0.003 250);
 
-  --card: oklch(0.175 0.005 270);
+  --card: oklch(0.165 0.004 270);
   --card-foreground: oklch(0.97 0.003 250);
-  --popover: oklch(0.18 0.005 270);
+  --popover: oklch(0.175 0.004 270);
   --popover-foreground: oklch(0.97 0.003 250);
 
-  /* Single accent — indigo. Used sparingly. */
-  --primary: oklch(0.70 0.16 268);
+  --primary: oklch(0.68 0.18 268);
   --primary-foreground: oklch(0.16 0.02 270);
 
   --secondary: oklch(0.22 0.006 270);
   --secondary-foreground: oklch(0.97 0.003 250);
 
-  --muted: oklch(0.21 0.006 270);
-  --muted-foreground: oklch(0.66 0.012 260);
+  --muted: oklch(0.20 0.005 270);
+  --muted-foreground: oklch(0.60 0.012 260);
 
   --accent: oklch(0.22 0.006 270);
   --accent-foreground: oklch(0.97 0.003 250);
 
-  --destructive: oklch(0.62 0.20 25);
+  --destructive: oklch(0.60 0.22 25);
   --destructive-foreground: oklch(0.98 0.005 250);
 
-  --border: oklch(1 0 0 / 7%);
-  --input: oklch(1 0 0 / 9%);
-  --ring: oklch(0.70 0.16 268 / 60%);
+  --border: oklch(1 0 0 / 6%);
+  --input: oklch(1 0 0 / 8%);
+  --ring: oklch(0.68 0.18 268 / 50%);
 
-  /* Chart colors — analogous, low-saturation. No rainbow. */
-  --chart-1: oklch(0.70 0.16 268);
-  --chart-2: oklch(0.66 0.12 230);
-  --chart-3: oklch(0.72 0.13 175);
-  --chart-4: oklch(0.78 0.11 90);
-  --chart-5: oklch(0.62 0.14 310);
+  --chart-1: oklch(0.68 0.18 268);
+  --chart-2: oklch(0.64 0.14 230);
+  --chart-3: oklch(0.70 0.14 175);
+  --chart-4: oklch(0.76 0.12 90);
+  --chart-5: oklch(0.60 0.16 310);
 
-  --sidebar: oklch(0.155 0.005 270);
+  --sidebar: oklch(0.14 0.004 270);
   --sidebar-foreground: oklch(0.97 0.003 250);
-  --sidebar-primary: oklch(0.70 0.16 268);
+  --sidebar-primary: oklch(0.68 0.18 268);
   --sidebar-primary-foreground: oklch(0.16 0.02 270);
-  --sidebar-accent: oklch(0.21 0.006 270);
+  --sidebar-accent: oklch(0.20 0.005 270);
   --sidebar-accent-foreground: oklch(0.97 0.003 250);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.70 0.16 268 / 50%);
+  --sidebar-border: oklch(1 0 0 / 5%);
+  --sidebar-ring: oklch(0.68 0.18 268 / 50%);
 
-  /* Kept for backwards compatibility — but toned WAY down. */
-  --gradient-primary: linear-gradient(180deg, oklch(0.72 0.16 268), oklch(0.62 0.16 268));
-  --gradient-subtle: linear-gradient(180deg, oklch(0.20 0.005 270), oklch(0.17 0.005 270));
-  --shadow-glow: 0 1px 0 0 oklch(1 0 0 / 0.05) inset, 0 8px 24px -12px oklch(0 0 0 / 0.6);
-  --shadow-card: 0 1px 0 0 oklch(1 0 0 / 0.04) inset, 0 1px 2px 0 oklch(0 0 0 / 0.4);
+  --gradient-primary: linear-gradient(180deg, oklch(0.70 0.18 268), oklch(0.60 0.18 268));
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px -4px oklch(0 0 0 / 0.4), 0 1px 0 0 oklch(1 0 0 / 0.04) inset;
+  --shadow-lg: 0 8px 32px -8px oklch(0 0 0 / 0.5), 0 1px 0 0 oklch(1 0 0 / 0.04) inset;
+  --shadow-xl: 0 16px 48px -12px oklch(0 0 0 / 0.6), 0 1px 0 0 oklch(1 0 0 / 0.04) inset;
 }
 
 @layer base {
@@ -111,37 +109,51 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-size: 0.9375rem;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     font-feature-settings: "cv11", "ss01", "ss03";
   }
-  /* Tighter, more product-feeling type. */
-  h1, h2, h3, h4 { letter-spacing: -0.02em; }
-  ::selection { background: oklch(0.70 0.16 268 / 0.35); }
+  h1, h2, h3, h4 { letter-spacing: -0.02em; font-weight: 600; }
+  ::selection { background: oklch(0.68 0.18 268 / 0.30); }
 }
 
 @layer utilities {
-  /* "glass" is now just a card with a hairline border — no heavy blur. */
-  .glass {
+  .surface-card {
     background-color: var(--card);
     border: 1px solid var(--color-border);
+    box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.03) inset;
   }
-  .glass-strong {
-    background-color: color-mix(in oklab, var(--card) 96%, white 4%);
+  .surface-elevated {
+    background-color: var(--popover);
     border: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px -4px oklch(0 0 0 / 0.4), 0 1px 0 0 oklch(1 0 0 / 0.04) inset;
   }
   .text-gradient {
     color: var(--color-foreground);
   }
   .bg-gradient-primary { background-color: var(--primary); }
-  .shadow-glow { box-shadow: var(--shadow-glow); }
-  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-sm { box-shadow: var(--shadow-sm); }
+  .shadow-md { box-shadow: var(--shadow-md); }
+  .shadow-lg { box-shadow: var(--shadow-lg); }
   .grid-pattern {
     background-image:
       linear-gradient(to right, oklch(1 0 0 / 0.025) 1px, transparent 1px),
       linear-gradient(to bottom, oklch(1 0 0 / 0.025) 1px, transparent 1px);
     background-size: 56px 56px;
   }
+    .glass {
+    background-color: var(--card);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.03) inset;
+  }
+  .glass-strong {
+    background-color: color-mix(in oklab, var(--card) 96%, white 4%);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.03) inset;
+  }
+  .shadow-glow { box-shadow: var(--shadow-md); }
+  .shadow-card { box-shadow: var(--shadow-sm); }
   .hairline { border-color: var(--color-border); }
   .dot-pattern {
     background-image: radial-gradient(oklch(1 0 0 / 0.06) 1px, transparent 1px);
@@ -149,17 +161,12 @@
   }
 }
 
-/* Reduce motion footprint. Keep only utilitarian animations. */
 @keyframes shimmer {
   0% { background-position: -800px 0; }
   100% { background-position: 800px 0; }
 }
 .shimmer {
-  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.05), transparent);
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.04), transparent);
   background-size: 800px 100%;
   animation: shimmer 1.6s infinite linear;
 }
-
-/* Removed: float, pulse-glow — too gimmicky. Provide no-op fallbacks. */
-.animate-float { animation: none; }
-.animate-pulse-glow { animation: none; }

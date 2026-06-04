@@ -4,13 +4,13 @@
  * the codebase.
  */
 export const chartColors = {
-  primary: "oklch(0.70 0.16 268)",
-  accent: "oklch(0.66 0.12 230)",
-  positive: "oklch(0.72 0.13 175)",
-  warning: "oklch(0.78 0.11 90)",
-  magenta: "oklch(0.62 0.14 310)",
-  grid: "oklch(1 0 0 / 0.06)",
-  axis: "oklch(0.66 0.012 260)",
+  primary: "oklch(0.68 0.18 268)",
+  accent: "oklch(0.64 0.14 230)",
+  positive: "oklch(0.70 0.14 175)",
+  warning: "oklch(0.76 0.12 90)",
+  magenta: "oklch(0.60 0.16 310)",
+  grid: "oklch(1 0 0 / 0.05)",
+  axis: "oklch(0.60 0.012 260)",
 };
 
 export const chartSeries = [
@@ -22,8 +22,8 @@ export const chartSeries = [
 ];
 
 export const chartTooltip = {
-  background: "oklch(0.18 0.005 270)",
-  border: "1px solid oklch(1 0 0 / 0.08)",
-  borderRadius: 10,
+  background: "oklch(0.175 0.004 270)",
+  border: "1px solid oklch(1 0 0 / 0.06)",
+  borderRadius: 8,
   fontSize: 12,
 };

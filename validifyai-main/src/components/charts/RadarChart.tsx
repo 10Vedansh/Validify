@@ -1,4 +1,10 @@
-import { ResponsiveContainer, RadarChart as RRadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
+import {
+  ResponsiveContainer,
+  RadarChart as RRadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  Radar,
+} from "recharts";
 import { chartColors } from "./theme";
 
 export function RadarChart({
@@ -18,7 +24,12 @@ export function RadarChart({
         <RRadarChart data={data}>
           <PolarGrid stroke={chartColors.grid} />
           <PolarAngleAxis dataKey={angleKey} tick={{ fill: chartColors.axis, fontSize: 11 }} />
-          <Radar dataKey={dataKey} stroke={chartColors.primary} fill={chartColors.primary} fillOpacity={0.18} />
+          <Radar
+            dataKey={dataKey}
+            stroke={chartColors.primary}
+            fill={chartColors.primary}
+            fillOpacity={0.18}
+          />
         </RRadarChart>
       </ResponsiveContainer>
     </div>

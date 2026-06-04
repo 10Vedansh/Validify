@@ -11,7 +11,11 @@ import { authService } from "@/services/auth.service";
 export const Route = createFileRoute("/forgot-password")({ component: Forgot });
 
 function Forgot() {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ForgotPasswordValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" },
   });
@@ -29,11 +33,23 @@ function Forgot() {
     <AuthLayout
       title="Reset password"
       subtitle="We'll email you a secure reset link."
-      footer={<>Remembered it? <Link to="/login" className="text-foreground hover:underline">Log in</Link></>}
+      footer={
+        <>
+          Remembered it?{" "}
+          <Link to="/login" className="text-foreground hover:underline">
+            Log in
+          </Link>
+        </>
+      }
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <Field label="Email" error={errors.email?.message}>
-          <Input type="email" autoComplete="email" placeholder="you@startup.com" {...register("email")} />
+          <Input
+            type="email"
+            autoComplete="email"
+            placeholder="you@startup.com"
+            {...register("email")}
+          />
         </Field>
         <SubmitButton loading={isSubmitting}>Send reset link</SubmitButton>
       </form>

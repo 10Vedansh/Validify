@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
  */
 export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
-    <Link to="/" className={cn("group flex items-center gap-2 font-semibold tracking-tight", className)}>
+    <Link
+      to="/"
+      className={cn("group flex items-center gap-2 font-semibold tracking-tight", className)}
+    >
       <span className="grid h-6 w-6 place-items-center rounded-md border border-border bg-card">
         <svg viewBox="0 0 20 20" className="h-3 w-3" aria-hidden="true">
           <path

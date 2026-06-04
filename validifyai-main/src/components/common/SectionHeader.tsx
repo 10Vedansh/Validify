@@ -17,7 +17,7 @@ export function SectionHeader({
       <div>
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {description && (
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{description}</p>
         )}
       </div>
       {actions}

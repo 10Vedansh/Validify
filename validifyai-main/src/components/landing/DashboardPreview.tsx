@@ -4,7 +4,9 @@ export function DashboardPreview() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto text-center mb-12">
           <p className="text-sm text-primary font-medium">Dashboard</p>
-          <h2 className="mt-3 text-3xl sm:text-5xl font-bold tracking-tight">A workspace that <span className="text-gradient">thinks like a VC</span></h2>
+          <h2 className="mt-3 text-3xl sm:text-5xl font-bold tracking-tight">
+            A workspace that <span className="text-gradient">thinks like a VC</span>
+          </h2>
         </div>
         <div className="glass-strong rounded-3xl p-6 sm:p-8 shadow-card">
           <div className="grid lg:grid-cols-3 gap-6">

@@ -17,7 +17,15 @@ export const forgotPasswordSchema = z.object({
 
 export const ideaSchema = z.object({
   name: z.string().trim().min(2, "Give your idea a name").max(80),
-  industry: z.enum(["AI / ML", "Fintech", "Healthtech", "Climate", "DevTools", "Consumer", "Productivity"]),
+  industry: z.enum([
+    "AI / ML",
+    "Fintech",
+    "Healthtech",
+    "Climate",
+    "DevTools",
+    "Consumer",
+    "Productivity",
+  ]),
   problem: z.string().trim().min(20, "Describe the problem (20+ chars)").max(1000),
   audience: z.string().trim().min(2).max(160),
   businessModel: z.enum(["SaaS", "Marketplace", "Transactional", "Usage-based", "Freemium"]),

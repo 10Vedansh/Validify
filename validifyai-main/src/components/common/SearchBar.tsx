@@ -22,7 +22,7 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-9 border-border bg-card pl-8 pr-14 text-sm"
+        className="h-9 bg-card pl-8 pr-14 text-sm"
       />
       {shortcut && (
         <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">

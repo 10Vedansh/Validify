@@ -1,15 +1,47 @@
 import { motion } from "framer-motion";
-import { Brain, LineChart, Crosshair, Gauge, Presentation, Bot, type LucideIcon } from "lucide-react";
+import {
+  Brain,
+  LineChart,
+  Crosshair,
+  Gauge,
+  Presentation,
+  Bot,
+  type LucideIcon,
+} from "lucide-react";
 
 const icons: Record<string, LucideIcon> = { Brain, LineChart, Crosshair, Gauge, Presentation, Bot };
 
 const features = [
-  { icon: "Brain", title: "AI SWOT Analysis", desc: "Instant strengths, weaknesses, opportunities & threats for any idea." },
-  { icon: "LineChart", title: "Market Research", desc: "Live TAM/SAM/SOM estimates with trend signals across industries." },
-  { icon: "Crosshair", title: "Competitor Detection", desc: "Find direct and lateral competitors before investors do." },
-  { icon: "Gauge", title: "Investor Readiness", desc: "A 0–100 score modeled on real seed & Series A benchmarks." },
-  { icon: "Presentation", title: "Pitch Deck Generator", desc: "From idea to a 10-slide investor-ready deck in seconds." },
-  { icon: "Bot", title: "AI Co-Founder Chat", desc: "Strategize, stress-test, and unblock with a 24/7 thought partner." },
+  {
+    icon: "Brain",
+    title: "AI SWOT Analysis",
+    desc: "Instant strengths, weaknesses, opportunities & threats for any idea.",
+  },
+  {
+    icon: "LineChart",
+    title: "Market Research",
+    desc: "Live TAM/SAM/SOM estimates with trend signals across industries.",
+  },
+  {
+    icon: "Crosshair",
+    title: "Competitor Detection",
+    desc: "Find direct and lateral competitors before investors do.",
+  },
+  {
+    icon: "Gauge",
+    title: "Investor Readiness",
+    desc: "A 0–100 score modeled on real seed & Series A benchmarks.",
+  },
+  {
+    icon: "Presentation",
+    title: "Pitch Deck Generator",
+    desc: "From idea to a 10-slide investor-ready deck in seconds.",
+  },
+  {
+    icon: "Bot",
+    title: "AI Co-Founder Chat",
+    desc: "Strategize, stress-test, and unblock with a 24/7 thought partner.",
+  },
 ];
 
 export function Features() {

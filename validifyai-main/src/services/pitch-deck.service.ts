@@ -1,7 +1,17 @@
 import { api } from "@/lib/api";
 
 export interface PitchDeckSlide {
-  type: "title" | "problem" | "solution" | "market" | "business_model" | "competition" | "traction" | "team" | "financials" | "ask";
+  type:
+    | "title"
+    | "problem"
+    | "solution"
+    | "market"
+    | "business_model"
+    | "competition"
+    | "traction"
+    | "team"
+    | "financials"
+    | "ask";
   title: string;
   content: string;
   bullets?: string[];

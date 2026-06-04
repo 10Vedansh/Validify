@@ -7,12 +7,7 @@ export type Industry =
   | "Consumer"
   | "Productivity";
 
-export type BusinessModel =
-  | "SaaS"
-  | "Marketplace"
-  | "Transactional"
-  | "Usage-based"
-  | "Freemium";
+export type BusinessModel = "SaaS" | "Marketplace" | "Transactional" | "Usage-based" | "Freemium";
 
 export type Idea = {
   id: string;
