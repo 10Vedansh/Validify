@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.git
+.gitignore
+*.md
+SECURITY_AUDIT.md
+ALIGNMENT.md
+ADMIN_ALIGNMENT.md
+AUTH_ALIGNMENT.md
+ENGINE_ALIGNMENT.md
+REPORT_ALIGNMENT.md
+docker-compose.yml
+.DS_Store
+*.log

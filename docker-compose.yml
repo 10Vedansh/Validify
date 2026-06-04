@@ -1,0 +1,77 @@
+# ─── Validify — Docker Compose ─────────────────────────────────────────
+#
+# Orchestrates the full stack for local development:
+#   - PostgreSQL 16 (via Supabase-compatible image)
+#   - Validify API (Hono + Prisma, hot-reload with tsx)
+#   - Validify Frontend (TanStack Start Vite dev server)
+#
+# For production, deploy each service independently:
+#   - PostgreSQL → Supabase
+#   - Backend API  → Railway or Render (see DEPLOYMENT.md)
+#   - Frontend     → Cloudflare Workers (recommended) or Vercel
+# ────────────────────────────────────────────────────────────────────────
+
+services:
+  # ─── Database ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: validify-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: validify
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend API ───────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: validify-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/validify"
+      DIRECT_URL: "postgresql://postgres:postgres@postgres:5432/validify"
+      FRONTEND_URL: "http://localhost:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Override CMD to run Prisma migrations + start server
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        npx tsx src/index.ts
+      "
+
+  # ─── Frontend ──────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./validifyai-main
+      dockerfile: Dockerfile
+      target: runner
+    container_name: validify-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: "http://localhost:8080/api"
+
+volumes:
+  pgdata:
