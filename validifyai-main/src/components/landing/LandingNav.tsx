@@ -1,77 +1,58 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-
-const links = [
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Changelog", href: "#faq" },
-  { label: "Docs", href: "#faq" },
-];
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { useState } from "react";
 
 export function LandingNav() {
-  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > 40);
+  });
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <div className="flex items-center gap-8">
+    <motion.header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-background/80 backdrop-blur-2xl border-b border-border/30 shadow-sm"
+          : "bg-background/40 backdrop-blur-lg border-b border-border/10"
+      }`}
+      initial={{ y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="mx-auto flex h-16 items-center justify-between px-8 max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Logo />
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            {links.map((l) => (
-              <a key={l.label} href={l.href} className="transition-colors hover:text-foreground">
-                {l.label}
-              </a>
-            ))}
-          </nav>
-        </div>
-        <div className="hidden items-center gap-1 md:flex">
+        </motion.div>
+        <motion.div
+          className="flex items-center gap-3"
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Link to="/login">
             <Button
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground transition-all duration-200 h-9"
             >
               Sign in
             </Button>
           </Link>
           <Link to="/register">
-            <Button size="sm" className="h-8">
+            <Button size="sm" className="h-10 px-6 rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.97] shadow-sm">
               Get started
             </Button>
           </Link>
-        </div>
-        <button className="p-2 md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        </motion.div>
       </div>
-      {open && (
-        <div className="space-y-3 border-t border-border bg-background px-6 py-4 md:hidden">
-          {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className="block text-sm text-muted-foreground"
-              onClick={() => setOpen(false)}
-            >
-              {l.label}
-            </a>
-          ))}
-          <div className="flex gap-2 pt-2">
-            <Link to="/login" className="flex-1">
-              <Button variant="outline" size="sm" className="w-full">
-                Sign in
-              </Button>
-            </Link>
-            <Link to="/register" className="flex-1">
-              <Button size="sm" className="w-full">
-                Get started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      )}
-    </header>
+    </motion.header>
   );
 }

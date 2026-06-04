@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
-import { Trusted } from "@/components/landing/Trusted";
+import { Story } from "@/components/landing/Story";
 import { Features } from "@/components/landing/Features";
-import { DashboardPreview } from "@/components/landing/DashboardPreview";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { Pricing } from "@/components/landing/Pricing";
 import { FAQ } from "@/components/landing/FAQ";
@@ -17,9 +16,8 @@ function Index() {
     <div className="min-h-screen">
       <LandingNav />
       <Hero />
-      <Trusted />
+      <Story />
       <Features />
-      <DashboardPreview />
       <Testimonials />
       <Pricing />
       <FAQ />

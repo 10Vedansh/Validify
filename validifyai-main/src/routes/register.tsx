@@ -7,6 +7,7 @@ import { OAuthRow, PasswordInput, SubmitButton, Field } from "@/components/auth/
 import { Input } from "@/components/ui/input";
 import { registerSchema, type RegisterValues } from "@/lib/schemas";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/register")({ component: Register });
 
@@ -33,11 +34,11 @@ function Register() {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Start validating in under 60 seconds."
+      subtitle="Get your startup validated in under 60 seconds."
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="text-foreground hover:underline">
+          <Link to="/login" className="text-foreground/80 hover:text-foreground transition-colors duration-200">
             Log in
           </Link>
         </>
@@ -45,14 +46,20 @@ function Register() {
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <OAuthRow />
-        <div className="relative my-2">
+        <motion.div
+          className="relative my-3"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+          }}
+        >
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
+            <span className="w-full border-t border-border/40" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-background px-2 text-muted-foreground">or with email</span>
+            <span className="bg-background px-2 text-muted-foreground/50">or sign up with email</span>
           </div>
-        </div>
+        </motion.div>
         <Field label="Full name" error={errors.name?.message}>
           <Input autoComplete="name" placeholder="Ada Lovelace" {...register("name")} />
         </Field>
@@ -68,9 +75,15 @@ function Register() {
           <PasswordInput autoComplete="new-password" {...register("password")} />
         </Field>
         <SubmitButton loading={isSubmitting}>Create account</SubmitButton>
-        <p className="text-center text-xs text-muted-foreground">
+        <motion.p
+          className="text-center text-xs text-muted-foreground/40 leading-relaxed"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { duration: 0.35, delay: 0.15 } },
+          }}
+        >
           By signing up you agree to our Terms and Privacy.
-        </p>
+        </motion.p>
       </form>
     </AuthLayout>
   );

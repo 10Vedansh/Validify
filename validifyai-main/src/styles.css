@@ -109,10 +109,11 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     font-feature-settings: "cv11", "ss01", "ss03";
+    line-height: 1.65;
   }
   h1, h2, h3, h4 { letter-spacing: -0.02em; font-weight: 600; }
   ::selection { background: oklch(0.68 0.18 268 / 0.30); }
@@ -170,3 +171,35 @@
   background-size: 800px 100%;
   animation: shimmer 1.6s infinite linear;
 }
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+@keyframes pulse-slower {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+@keyframes pulse-slowest {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+.animate-pulse-slow { animation: pulse-slow 6s infinite ease-in-out; }
+.animate-pulse-slower { animation: pulse-slower 8s infinite ease-in-out; }
+.animate-pulse-slowest { animation: pulse-slowest 10s infinite ease-in-out; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float { animation: float 4s infinite ease-in-out; }
+.animate-float-delayed { animation: float-delayed 5s infinite ease-in-out; }
+.animate-float-slow { animation: float-slow 6s infinite ease-in-out; }

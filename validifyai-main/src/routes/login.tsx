@@ -7,6 +7,7 @@ import { OAuthRow, PasswordInput, SubmitButton, Field } from "@/components/auth/
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginValues } from "@/lib/schemas";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -34,11 +35,11 @@ function Login() {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Log in to continue validating ideas."
+      subtitle="Log in to continue building your startup."
       footer={
         <>
           New here?{" "}
-          <Link to="/register" className="text-foreground hover:underline">
+          <Link to="/register" className="text-foreground/80 hover:text-foreground transition-colors duration-200">
             Create an account
           </Link>
         </>
@@ -46,14 +47,20 @@ function Login() {
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <OAuthRow />
-        <div className="relative my-2">
+        <motion.div
+          className="relative my-3"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+          }}
+        >
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
+            <span className="w-full border-t border-border/40" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-background px-2 text-muted-foreground">or with email</span>
+            <span className="bg-background px-2 text-muted-foreground/50">or continue with email</span>
           </div>
-        </div>
+        </motion.div>
         <Field label="Email" error={errors.email?.message}>
           <Input
             type="email"
@@ -68,7 +75,7 @@ function Login() {
           hint={
             <Link
               to="/forgot-password"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground/50 hover:text-foreground/80 transition-colors duration-200"
             >
               Forgot?
             </Link>
@@ -78,6 +85,15 @@ function Login() {
         </Field>
         <SubmitButton loading={isSubmitting}>Log in</SubmitButton>
       </form>
+      <motion.p
+        className="mt-6 text-center text-xs text-muted-foreground/30 leading-relaxed max-w-xs mx-auto"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { duration: 0.4, delay: 0.3 } },
+        }}
+      >
+        Your data is encrypted. We never share your information.
+      </motion.p>
     </AuthLayout>
   );
 }
