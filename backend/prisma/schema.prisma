@@ -1,17 +1,3 @@
-// ─── Validify — Prisma Schema ─────────────────────────────────────────
-//
-// Generated from frontend type definitions in validifyai-main/src/types/
-// Models: User, Report, Subscription, Payment, Usage, ApiLog
-// Supporting: Idea, Validation, ChatThread, ChatMessage
-//
-// Conventions:
-//   - `@map` uses snake_case for column names
-//   - `@@map` uses snake_case for table names
-//   - All models have createdAt / updatedAt
-//   - Soft delete via `deletedAt` on entities that may need recovery
-//   - Json fields used for flexible / AI-generated data (score, SWOT, etc.)
-// ────────────────────────────────────────────────────────────────────────
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearchPostgres"]
@@ -22,7 +8,293 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums ─────────────────────────────────────────────────────────────
+/// Core user account mapped from frontend User type.
+model User {
+  id                   String         @id @default(cuid())
+  email                String         @unique
+  name                 String
+  passwordHash         String         @map("password_hash")
+  avatarUrl            String?        @map("avatar_url")
+  plan                 Plan           @default(FREE)
+  stripeCustomerId     String?        @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?        @unique @map("stripe_subscription_id")
+  emailVerified        Boolean        @default(false) @map("email_verified")
+  emailVerifiedAt      DateTime?      @map("email_verified_at")
+  resetToken           String?        @map("reset_token")
+  resetTokenExpiresAt  DateTime?      @map("reset_token_expires_at")
+  refreshTokenHash     String?        @map("refresh_token_hash")
+  tokenVersion         Int            @default(1) @map("token_version")
+  deletedAt            DateTime?      @map("deleted_at")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+  isAdmin              Boolean        @default(false) @map("is_admin")
+  apiLogs              ApiLog[]
+  chatThreads          ChatThread[]
+  ideas                Idea[]
+  payments             Payment[]
+  pitchDecks           PitchDeck[]
+  reports              Report[]
+  subscriptions        Subscription[]
+  usageRecords         Usage[]
+  validations          Validation[]
+
+  @@index([email])
+  @@index([plan])
+  @@index([stripeCustomerId])
+  @@map("users")
+}
+
+/// Startup idea — maps to frontend Idea type in startup.ts.
+model Idea {
+  id            String        @id @default(cuid())
+  userId        String        @map("user_id")
+  name          String
+  industry      Industry
+  problem       String
+  audience      String
+  businessModel BusinessModel @map("business_model")
+  budget        String?
+  country       String?
+  competitors   String[]
+  notes         String?
+  attachmentUrl String?       @map("attachment_url")
+  deletedAt     DateTime?     @map("deleted_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  chatThreads   ChatThread[]
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports       Report[]
+  validations   Validation[]
+
+  @@index([userId])
+  @@index([userId, industry])
+  @@index([userId, deletedAt])
+  @@index([name])
+  @@map("ideas")
+}
+
+/// AI validation run — maps to frontend Validation type in startup.ts.
+/// Score dimensions are stored as individual columns for querying,
+/// and also as a Json bag for flexibility.
+model Validation {
+  id                String           @id @default(cuid())
+  ideaId            String           @map("idea_id")
+  userId            String           @map("user_id")
+  status            ValidationStatus @default(RUNNING)
+  overallScore      Int?             @map("overall_score")
+  marketScore       Int?             @map("market_score")
+  teamScore         Int?             @map("team_score")
+  moatScore         Int?             @map("moat_score")
+  monetizationScore Int?             @map("monetization_score")
+  tractionScore     Int?             @map("traction_score")
+  riskScore         Int?             @map("risk_score")
+  rawLlmResponse    Json?            @map("raw_llm_response")
+  errorMessage      String?          @map("error_message")
+  startedAt         DateTime         @default(now()) @map("started_at")
+  completedAt       DateTime?        @map("completed_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  report            Report?
+  idea              Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ideaId])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@map("validations")
+}
+
+/// Investor-grade report — maps to frontend Report type in report.ts.
+/// SWOT, competitors, and roadmap are stored as native arrays or Json
+/// to match the frontend's exact shape without join tables.
+model Report {
+  id                String      @id @default(cuid())
+  ideaId            String      @map("idea_id")
+  validationId      String      @unique @map("validation_id")
+  userId            String      @map("user_id")
+  title             String
+  summary           String
+  industry          String
+  overallScore      Int         @map("overall_score")
+  marketScore       Int         @map("market_score")
+  teamScore         Int         @map("team_score")
+  moatScore         Int         @map("moat_score")
+  monetizationScore Int         @map("monetization_score")
+  tractionScore     Int         @map("traction_score")
+  riskScore         Int         @map("risk_score")
+  strengths         String[]    @default([])
+  weaknesses        String[]    @default([])
+  opportunities     String[]    @default([])
+  threats           String[]    @default([])
+  competitors       Json        @default("[]")
+  roadmap           Json        @default("[]")
+  tam               String?     @map("tam")
+  sam               String?     @map("sam")
+  som               String?     @map("som")
+  pdfUrl            String?     @map("pdf_url")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  pitchDecks        PitchDeck[]
+  idea              Idea        @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  validation        Validation  @relation(fields: [validationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ideaId])
+  @@index([userId, createdAt])
+  @@map("reports")
+}
+
+/// Billing subscription — linked to Stripe subscription object.
+/// One user can have at most one active subscription at a time.
+/// Historical subscriptions are retained for invoicing audit.
+model Subscription {
+  id                       String             @id @default(cuid())
+  userId                   String             @map("user_id")
+  plan                     Plan
+  interval                 PlanInterval       @default(MONTHLY) @map("interval")
+  status                   SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId     String?            @unique @map("stripe_subscription_id")
+  stripeCustomerId         String?            @map("stripe_customer_id")
+  stripeSubscriptionItemId String?            @map("stripe_subscription_item_id")
+  currentPeriodStart       DateTime           @map("current_period_start")
+  currentPeriodEnd         DateTime           @map("current_period_end")
+  trialEndsAt              DateTime?          @map("trial_ends_at")
+  canceledAt               DateTime?          @map("canceled_at")
+  unitPrice                Int?               @map("unit_price")
+  currency                 String             @default("usd")
+  createdAt                DateTime           @default(now()) @map("created_at")
+  updatedAt                DateTime           @updatedAt @map("updated_at")
+  payments                 Payment[]
+  user                     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeSubscriptionId])
+  @@index([userId, status])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+/// Payment transaction record — one per invoice / charge.
+model Payment {
+  id                    String        @id @default(cuid())
+  userId                String        @map("user_id")
+  subscriptionId        String?       @map("subscription_id")
+  stripeInvoiceId       String?       @map("stripe_invoice_id")
+  stripePaymentIntentId String?       @map("stripe_payment_intent_id")
+  amount                Int
+  currency              String        @default("usd")
+  status                PaymentStatus @default(PENDING)
+  description           String?
+  paidAt                DateTime?     @map("paid_at")
+  refundedAt            DateTime?     @map("refunded_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id])
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([userId, createdAt])
+  @@index([stripeInvoiceId])
+  @@index([stripePaymentIntentId])
+  @@map("payments")
+}
+
+/// Metered usage record — tracked per action for plan enforcement
+/// and Stripe usage-based billing.
+model Usage {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  action    String
+  quantity  Int      @default(1)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, action])
+  @@index([userId, createdAt])
+  @@index([userId, action, createdAt])
+  @@map("usage_records")
+}
+
+/// Audit log for API requests — used for debugging, rate limiting analysis,
+/// and security monitoring. Retention: 90 days (handled by cleanup job).
+model ApiLog {
+  id             String   @id @default(cuid())
+  userId         String?  @map("user_id")
+  method         String
+  path           String
+  query          String?
+  statusCode     Int      @map("status_code")
+  durationMs     Int      @map("duration_ms")
+  requestHeaders Json?    @map("request_headers")
+  requestBody    String?  @map("request_body")
+  responseBody   String?  @map("response_body")
+  ipAddress      String?  @map("ip_address")
+  userAgent      String?  @map("user_agent")
+  createdAt      DateTime @default(now()) @map("created_at")
+  user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([statusCode])
+  @@index([path])
+  @@index([method, path])
+  @@index([createdAt], map: "api_logs_created_at_ttl_idx")
+  @@map("api_logs")
+}
+
+/// Conversation thread — maps to frontend ChatThread type in report.ts.
+model ChatThread {
+  id        String        @id @default(cuid())
+  userId    String        @map("user_id")
+  ideaId    String?       @map("idea_id")
+  title     String
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  messages  ChatMessage[]
+  idea      Idea?         @relation(fields: [ideaId], references: [id])
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, updatedAt])
+  @@map("chat_threads")
+}
+
+/// Individual message within a thread — maps to frontend ChatMessage type.
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String     @map("thread_id")
+  role      String
+  content   String
+  model     String?
+  tokensIn  Int?       @map("tokens_in")
+  tokensOut Int?       @map("tokens_out")
+  createdAt DateTime   @default(now()) @map("created_at")
+  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([threadId, createdAt])
+  @@map("chat_messages")
+}
+
+/// Generated pitch deck — stores slide content as JSON.
+model PitchDeck {
+  id        String   @id @default(cuid())
+  reportId  String   @map("report_id")
+  userId    String   @map("user_id")
+  title     String
+  content   Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reportId])
+  @@index([userId, createdAt])
+  @@map("pitch_decks")
+}
 
 enum Plan {
   FREE
@@ -69,426 +341,23 @@ enum ValidationStatus {
 }
 
 enum Industry {
-  AI_ML         @map("AI / ML")
-  FINTECH       @map("Fintech")
-  HEALTHTECH    @map("Healthtech")
-  CLIMATE       @map("Climate")
-  DEVTOOLS      @map("DevTools")
-  CONSUMER      @map("Consumer")
-  PRODUCTIVITY  @map("Productivity")
+  AI_ML        @map("AI / ML")
+  FINTECH      @map("Fintech")
+  HEALTHTECH   @map("Healthtech")
+  CLIMATE      @map("Climate")
+  DEVTOOLS     @map("DevTools")
+  CONSUMER     @map("Consumer")
+  PRODUCTIVITY @map("Productivity")
 
   @@map("industry")
 }
 
 enum BusinessModel {
-  SAAS           @map("SaaS")
-  MARKETPLACE    @map("Marketplace")
-  TRANSACTIONAL  @map("Transactional")
-  USAGE_BASED    @map("Usage-based")
-  FREEMIUM       @map("Freemium")
+  SAAS          @map("SaaS")
+  MARKETPLACE   @map("Marketplace")
+  TRANSACTIONAL @map("Transactional")
+  USAGE_BASED   @map("Usage-based")
+  FREEMIUM      @map("Freemium")
 
   @@map("business_model")
-}
-
-// ─── 1. User ───────────────────────────────────────────────────────────
-
-/// Core user account mapped from frontend User type.
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  passwordHash String @map("password_hash")
-
-  // Profile
-  avatarUrl String?  @map("avatar_url")
-
-  // Admin flag — only admins can access /admin endpoints
-  isAdmin Boolean @default(false) @map("is_admin")
-
-  // Billing plan — matches frontend User.plan union
-  plan         Plan   @default(FREE)
-  stripeCustomerId     String? @unique @map("stripe_customer_id")
-  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
-
-  // Security
-  emailVerified        Boolean  @default(false) @map("email_verified")
-  emailVerifiedAt      DateTime? @map("email_verified_at")
-  resetToken           String?  @map("reset_token")
-  resetTokenExpiresAt  DateTime? @map("reset_token_expires_at")
-  refreshTokenHash     String?  @map("refresh_token_hash")
-  tokenVersion         Int      @default(1) @map("token_version")
-
-  // Soft delete
-  deletedAt DateTime? @map("deleted_at")
-
-  // Timestamps
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  ideas        Idea[]
-  validations  Validation[]
-  reports      Report[]
-  subscriptions Subscription[]
-  payments     Payment[]
-  usageRecords Usage[]
-  chatThreads  ChatThread[]
-  pitchDecks   PitchDeck[]
-  apiLogs      ApiLog[]
-
-  @@index([email])
-  @@index([plan])
-  @@index([stripeCustomerId])
-  @@map("users")
-}
-
-// ─── 2. Idea ───────────────────────────────────────────────────────────
-
-/// Startup idea — maps to frontend Idea type in startup.ts.
-model Idea {
-  id            String        @id @default(cuid())
-  userId        String        @map("user_id")
-  name          String
-  industry      Industry
-  problem       String
-  audience      String
-  businessModel BusinessModel @map("business_model")
-
-  // Optional fields from frontend IdeaDraft
-  budget       String?
-  country      String?
-  competitors  String[]
-  notes        String?
-  attachmentUrl String?       @map("attachment_url")
-
-  // Soft delete
-  deletedAt DateTime? @map("deleted_at")
-
-  // Timestamps
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  validations Validation[]
-  reports     Report[]
-  chatThreads ChatThread[]
-
-  @@index([userId])
-  @@index([userId, industry])
-  @@index([userId, deletedAt])
-  @@index([name])
-  @@map("ideas")
-}
-
-// ─── 3. Validation ─────────────────────────────────────────────────────
-
-/// AI validation run — maps to frontend Validation type in startup.ts.
-/// Score dimensions are stored as individual columns for querying,
-/// and also as a Json bag for flexibility.
-model Validation {
-  id     String           @id @default(cuid())
-  ideaId String           @map("idea_id")
-  userId String           @map("user_id")
-  status ValidationStatus @default(RUNNING)
-
-  // Individual score columns (queriable)
-  overallScore      Int? @map("overall_score")
-  marketScore       Int? @map("market_score")
-  teamScore         Int? @map("team_score")
-  moatScore         Int? @map("moat_score")
-  monetizationScore Int? @map("monetization_score")
-  tractionScore     Int? @map("traction_score")
-  riskScore         Int? @map("risk_score")
-
-  // Raw LLM response stored for audit / re-processing
-  rawLlmResponse Json?   @map("raw_llm_response")
-
-  // Error info if FAILED
-  errorMessage String? @map("error_message")
-
-  // Timing
-  startedAt   DateTime  @default(now()) @map("started_at")
-  completedAt DateTime? @map("completed_at")
-
-  // Timestamps
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  idea   Idea    @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  report Report?
-
-  @@index([userId])
-  @@index([ideaId])
-  @@index([userId, status])
-  @@index([userId, createdAt])
-  @@map("validations")
-}
-
-// ─── 4. Report ─────────────────────────────────────────────────────────
-
-/// Investor-grade report — maps to frontend Report type in report.ts.
-/// SWOT, competitors, and roadmap are stored as native arrays or Json
-/// to match the frontend's exact shape without join tables.
-model Report {
-  id           String   @id @default(cuid())
-  ideaId       String   @map("idea_id")
-  validationId String   @unique @map("validation_id")
-  userId       String   @map("user_id")
-
-  // Metadata
-  title     String
-  summary   String
-  industry  String
-
-  // Validation scores (denormalized for fast reads)
-  overallScore      Int  @map("overall_score")
-  marketScore       Int  @map("market_score")
-  teamScore         Int  @map("team_score")
-  moatScore         Int  @map("moat_score")
-  monetizationScore Int  @map("monetization_score")
-  tractionScore     Int  @map("traction_score")
-  riskScore         Int  @map("risk_score")
-
-  // SWOT — PostgreSQL text arrays
-  strengths     String[]  @default([])
-  weaknesses    String[]  @default([])
-  opportunities String[]  @default([])
-  threats       String[]  @default([])
-
-  // Complex nested data — Json
-  // Competitor[] = [{ name: string, score: number, url?: string }]
-  competitors Json @default("[]")
-  // RoadmapItem[] = [{ quarter: string, label: string }]
-  roadmap     Json @default("[]")
-
-  // Market sizing
-  tam String?  @map("tam")
-  sam String?  @map("sam")
-  som String?  @map("som")
-
-  // Generated file
-  pdfUrl    String?   @map("pdf_url")
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  idea       Idea       @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  validation Validation @relation(fields: [validationId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pitchDecks PitchDeck[]
-
-  @@index([userId])
-  @@index([ideaId])
-  @@index([userId, createdAt])
-  @@map("reports")
-}
-
-// ─── 5. Subscription ───────────────────────────────────────────────────
-
-/// Billing subscription — linked to Stripe subscription object.
-/// One user can have at most one active subscription at a time.
-/// Historical subscriptions are retained for invoicing audit.
-model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String             @map("user_id")
-  plan                 Plan
-  interval             PlanInterval       @default(MONTHLY) @map("interval")
-  status               SubscriptionStatus @default(ACTIVE)
-
-  // Stripe linkage
-  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
-  stripeCustomerId     String?            @map("stripe_customer_id")
-  stripeSubscriptionItemId String?        @map("stripe_subscription_item_id")
-
-  // Billing period (UTC)
-  currentPeriodStart   DateTime           @map("current_period_start")
-  currentPeriodEnd     DateTime           @map("current_period_end")
-  trialEndsAt          DateTime?          @map("trial_ends_at")
-  canceledAt           DateTime?          @map("canceled_at")
-
-  // Pricing
-  unitPrice            Int?               @map("unit_price") // in cents
-  currency             String             @default("usd")
-
-  // Timestamps
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments Payment[]
-
-  @@index([userId])
-  @@index([stripeSubscriptionId])
-  @@index([userId, status])
-  @@index([status])
-  @@map("subscriptions")
-}
-
-// ─── 6. Payment ────────────────────────────────────────────────────────
-
-/// Payment transaction record — one per invoice / charge.
-model Payment {
-  id                   String        @id @default(cuid())
-  userId               String        @map("user_id")
-  subscriptionId       String?       @map("subscription_id")
-
-  // Stripe linkage
-  stripeInvoiceId      String?       @map("stripe_invoice_id")
-  stripePaymentIntentId String?      @map("stripe_payment_intent_id")
-
-  // Amount in smallest currency unit (cents for USD)
-  amount               Int
-  currency             String        @default("usd")
-  status               PaymentStatus @default(PENDING)
-
-  // Optional description (e.g. "Validify Pro - Monthly")
-  description          String?
-
-  // Timestamps
-  paidAt    DateTime?  @map("paid_at")
-  refundedAt DateTime? @map("refunded_at")
-  createdAt DateTime   @default(now()) @map("created_at")
-
-  // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
-
-  @@index([userId])
-  @@index([subscriptionId])
-  @@index([userId, createdAt])
-  @@index([stripeInvoiceId])
-  @@index([stripePaymentIntentId])
-  @@map("payments")
-}
-
-// ─── 7. Usage ──────────────────────────────────────────────────────────
-
-/// Metered usage record — tracked per action for plan enforcement
-/// and Stripe usage-based billing.
-model Usage {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  action    String   // "validation" | "chat_message" | "deck_export" | "pdf_export" | "ai_token"
-  quantity  Int      @default(1)
-
-  // Arbitrary metadata for debugging / billing context
-  // e.g. { "model": "gpt-4o", "tokens": 1245, "validationId": "val_..." }
-  metadata  Json?
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([userId, action])
-  @@index([userId, createdAt])
-  @@index([userId, action, createdAt])
-  @@map("usage_records")
-}
-
-// ─── 8. ApiLog ─────────────────────────────────────────────────────────
-
-/// Audit log for API requests — used for debugging, rate limiting analysis,
-/// and security monitoring. Retention: 90 days (handled by cleanup job).
-model ApiLog {
-  id         String   @id @default(cuid())
-  userId     String?  @map("user_id") // null for unauthenticated requests
-  method     String   // GET, POST, PATCH, DELETE
-  path       String
-  query      String?  // Raw query string
-  statusCode Int      @map("status_code")
-  durationMs Int      @map("duration_ms")
-
-  // Payloads (truncated to 2KB to save space)
-  requestHeaders  Json?   @map("request_headers")
-  requestBody     String? @map("request_body")   // Truncated to ~2KB
-  responseBody    String? @map("response_body")  // Truncated to ~2KB
-
-  // Client info
-  ipAddress    String? @map("ip_address")
-  userAgent    String? @map("user_agent")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user       User?    @relation(fields: [userId], references: [id])
-
-  @@index([createdAt])
-  @@index([userId, createdAt])
-  @@index([statusCode])
-  @@index([path])
-  @@index([method, path])
-  @@index([createdAt], map: "api_logs_created_at_ttl_idx")
-  @@map("api_logs")
-}
-
-// ─── 9. ChatThread ─────────────────────────────────────────────────────
-
-/// Conversation thread — maps to frontend ChatThread type in report.ts.
-model ChatThread {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  ideaId    String?  @map("idea_id") // optional association to an idea
-  title     String
-
-  // Timestamps
-  updatedAt DateTime @updatedAt @map("updated_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  idea     Idea?        @relation(fields: [ideaId], references: [id])
-  messages ChatMessage[]
-
-  @@index([userId])
-  @@index([userId, updatedAt])
-  @@map("chat_threads")
-}
-
-// ─── 10. ChatMessage ───────────────────────────────────────────────────
-
-/// Individual message within a thread — maps to frontend ChatMessage type.
-model ChatMessage {
-  id        String   @id @default(cuid())
-  threadId  String   @map("thread_id")
-  role      String   // "user" | "assistant" | "system"
-  content   String
-
-  // AI metadata for cost tracking
-  model     String?  // e.g. "openai/gpt-4o"
-  tokensIn  Int?     @map("tokens_in")
-  tokensOut Int?     @map("tokens_out")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-
-  @@index([threadId])
-  @@index([threadId, createdAt])
-  @@map("chat_messages")
-}
-
-// ─── 11. PitchDeck ────────────────────────────────────────────────────
-
-/// Generated pitch deck — stores slide content as JSON.
-model PitchDeck {
-  id        String   @id @default(cuid())
-  reportId  String   @map("report_id")
-  userId    String   @map("user_id")
-  title     String
-  content   Json     // Array of slides, each with type and content
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([reportId])
-  @@index([userId, createdAt])
-  @@map("pitch_decks")
 }
