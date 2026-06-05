@@ -10,7 +10,15 @@
 ![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
 
 ---
+## 🌐 Live Demo
 
+Frontend:
+https://validify.tapariavedansh.workers.dev
+
+Backend API:
+https://validify-gao8.onrender.com
+
+---
 ## 🌟 Overview
 
 Validify AI is an AI-powered startup validation platform designed to help founders evaluate ideas before investing months of development time.
