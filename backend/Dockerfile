@@ -55,6 +55,7 @@ COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 COPY --chown=app:app tsconfig.json ./
 COPY --chown=app:app src/ ./src/
 COPY --chown=app:app prisma/ ./prisma/
+COPY --chmod=755 --chown=app:app entrypoint.sh ./
 
 # Install tsx for runtime TypeScript execution
 RUN npm install --no-save tsx
@@ -68,7 +69,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD curl -f --max-time 5 http://localhost:8080/health || exit 1
 
-# tsx runs the source directly — it resolves @/* path aliases
-# from tsconfig.json and transpiles on-the-fly.
-# Migrations run before the app starts to ensure the schema is current.
-CMD ["dumb-init", "sh", "-c", "npx prisma migrate deploy && npx tsx src/index.ts"]
+# Entrypoint runs migrations with explicit logging, then starts the app.
+# Uses dumb-init as PID 1 for correct signal handling and zombie reaping.
+CMD ["dumb-init", "./entrypoint.sh"]
