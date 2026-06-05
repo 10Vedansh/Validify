@@ -1,1 +1,1 @@
-web: echo "=== Prisma Migrate Deploy ===" && npx prisma migrate deploy 2>&1 && echo "=== Starting App ===" && exec npx tsx src/index.ts
+web: echo "=== Starting App (schema pre-applied via SQL) ===" && exec npx tsx src/index.ts
