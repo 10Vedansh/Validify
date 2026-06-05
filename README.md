@@ -1,100 +1,344 @@
-# Validify
+# 🚀 Validify AI
 
-AI-powered idea validation platform. Submit an idea and get instant scoring, market analysis, and actionable feedback through an AI validation engine.
+> Transform startup ideas into validated business opportunities with AI-powered market analysis, investor readiness scoring, and strategic insights.
 
-## Architecture
+![License](https://img.shields.io/badge/license-MIT-blue)
+![React](https://img.shields.io/badge/React-18-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-purple)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
 
+---
+
+## 🌟 Overview
+
+Validify AI is an AI-powered startup validation platform designed to help founders evaluate ideas before investing months of development time.
+
+The platform acts as an AI co-founder by providing:
+
+- Market validation
+- Startup idea analysis
+- SWOT analysis
+- Investor readiness assessment
+- Business model feedback
+- Strategic recommendations
+- Validation reports
+- Interactive AI conversations
+
+---
+
+## ✨ Features
+
+### 🤖 AI Co-Founder
+- Real-time startup validation
+- Strategic business feedback
+- Market opportunity assessment
+- Product positioning insights
+
+### 📊 Validation Dashboard
+- Startup scoring system
+- Validation history
+- Report generation
+- Progress tracking
+
+### 💡 Startup Analysis
+- Market potential evaluation
+- Competitive landscape analysis
+- Risk identification
+- Growth opportunities
+
+### 🔐 Authentication & Security
+- Secure user registration
+- JWT authentication
+- Protected API routes
+- Password hashing
+
+### ☁️ Cloud Deployment
+- Production-ready architecture
+- Dockerized backend
+- Render deployment
+- Supabase database integration
+
+---
+
+## 🏗️ System Architecture
+
+```text
+┌─────────────────────┐
+│     Frontend        │
+│ React + TypeScript  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│      Backend        │
+│    Hono + Node.js   │
+└───────┬─────┬───────┘
+        │     │
+        ▼     ▼
+ ┌─────────┐ ┌──────────┐
+ │ Gemini  │ │ Supabase │
+ │   AI    │ │PostgreSQL│
+ └─────────┘ └──────────┘
 ```
-┌──────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  TanStack     │     │  Hono API        │     │  Supabase        │
-│  Start SSR    │────▶│  (TypeScript)    │────▶│  PostgreSQL      │
-│  (Cloudflare  │     │  Railway / Render│     │  (Managed)       │
-│   Workers)    │     │  :8080           │     │  :5432           │
-└──────────────┘     └──────────────────┘     └──────────────────┘
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- React Router
+- Axios
+
+### Backend
+
+- Node.js
+- Hono
+- Prisma ORM
+- JWT Authentication
+- bcrypt
+
+### Database
+
+- PostgreSQL
+- Supabase
+
+### AI Services
+
+- Google Gemini
+- OpenRouter
+
+### Deployment
+
+- Docker
+- Render
+- Cloudflare Workers
+
+---
+
+## 📂 Project Structure
+
+```text
+Validify/
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+├── backend/
+│   ├── src/
+│   ├── prisma/
+│   ├── Dockerfile
+│   └── package.json
+│
+├── docs/
+│   ├── screenshots/
+│   └── architecture/
+│
+├── README.md
+└── LICENSE
 ```
 
-- **Frontend**: `validifyai-main/` — TanStack Start SSR, React 19, Tailwind v4, Radix UI, Zustand
-- **Backend**: `backend/` — Hono, Prisma ORM, JWT auth (jose), AI validation (OpenRouter), Zod validation
-- **Database**: Supabase PostgreSQL with Prisma migrations and full-text search
+---
 
-## Quick Start
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL
+- Supabase Account
+- Gemini API Key
+
+---
+
+### Clone Repository
 
 ```bash
-# Start full stack (PostgreSQL + API + Frontend)
-docker compose up --build
+git clone https://github.com/10Vedansh/Validify.git
 
-# API: http://localhost:8080
-# Frontend: http://localhost:3000
-# DB: postgresql://postgres:postgres@localhost:5432/validify
+cd Validify
 ```
 
-### Manual (no Docker)
+---
+
+## Backend Setup
 
 ```bash
-# Backend
 cd backend
-cp .env.example .env    # edit DATABASE_URL
-npm install
-npx prisma migrate dev
-npm run dev             # → :8080
 
-# Frontend
-cd validifyai-main
-cp .env.example .env    # edit VITE_API_URL
 npm install
-npm run dev             # → :5173
 ```
 
-## Deployment
+Create a `.env` file:
 
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for full instructions.
+```env
+DATABASE_URL=
+DIRECT_URL=
 
-| Target | Service | Method |
-|---|---|---|
-| Railway | Backend API | Dockerfile |
-| Render | Backend API | Dockerfile / Procfile |
-| Cloudflare Workers | Frontend SSR | `wrangler deploy` |
-| Vercel | Frontend (static) | `vercel deploy` / git push |
-| Supabase | PostgreSQL | Managed |
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
 
-### TL;DR — Deploy Steps
+GEMINI_API_KEY=
+OPENROUTER_API_KEY=
+```
+
+Generate Prisma Client:
 
 ```bash
-# 1. Database — Create Supabase project, copy DATABASE_URL
-# 2. Backend migrations
-cd backend && DATABASE_URL="..." npx prisma migrate deploy
-
-# 3. Backend — Deploy to Railway (connect repo, set env vars)
-# 4. Frontend — Deploy to Cloudflare Workers
-cd validifyai-main && wrangler deploy
+npx prisma generate
 ```
 
-## Project Structure
+Apply schema:
 
+```bash
+npx prisma db push
 ```
-validify/
-├── backend/                # Hono API server
-│   ├── prisma/             # Schema + migrations
-│   ├── src/
-│   │   ├── auth/           # JWT, middleware, routes
-│   │   ├── ideas/          # Idea CRUD + validation
-│   │   ├── reports/        # Report generation
-│   │   ├── admin/          # Admin endpoints
-│   │   ├── chat/           # AI chat
-│   │   ├── ai/             # OpenRouter integration
-│   │   └── config/         # Environment validation
-│   ├── Dockerfile
-│   └── Procfile
-├── validifyai-main/        # TanStack Start frontend
-│   ├── src/
-│   │   ├── routes/         # File-based routing
-│   │   ├── components/     # React components (shadcn/ui)
-│   │   ├── services/       # API client calls
-│   │   ├── store/          # Zustand stores
-│   │   └── constants/      # Config
-│   ├── Dockerfile
-│   └── vercel.json
-├── docker-compose.yml       # Local full-stack orchestration
-├── DEPLOYMENT.md            # Full deployment guide
-└── README.md
+
+Run backend:
+
+```bash
+npm run dev
 ```
+
+---
+
+## Frontend Setup
+
+```bash
+cd frontend
+
+npm install
+
+npm run dev
+```
+
+---
+
+## 🔑 Environment Variables
+
+| Variable | Description |
+|-----------|-------------|
+| DATABASE_URL | Supabase pooled connection |
+| DIRECT_URL | Direct PostgreSQL connection |
+| JWT_ACCESS_SECRET | JWT access token secret |
+| JWT_REFRESH_SECRET | JWT refresh token secret |
+| GEMINI_API_KEY | Google Gemini API key |
+| OPENROUTER_API_KEY | OpenRouter API key |
+
+---
+
+## 📸 Screenshots
+
+### Landing Page
+
+_Add screenshot here_
+
+### Authentication
+
+_Add screenshot here_
+
+### Dashboard
+
+_Add screenshot here_
+
+### AI Co-Founder Chat
+
+_Add screenshot here_
+
+---
+
+## 🎯 Use Cases
+
+### Startup Founders
+
+- Validate startup ideas
+- Assess market opportunities
+- Identify risks early
+- Improve investor readiness
+
+### Entrepreneurs
+
+- Test business concepts
+- Refine value propositions
+- Explore growth strategies
+
+### Students & Innovators
+
+- Learn startup fundamentals
+- Evaluate project viability
+- Practice business planning
+
+---
+
+## 📈 Roadmap
+
+### Version 1.0
+- [x] Authentication
+- [x] Startup Validation
+- [x] AI Chat
+- [x] Dashboard
+- [x] Supabase Integration
+
+### Version 2.0
+- [ ] Investor Pitch Deck Generation
+- [ ] Advanced Analytics
+- [ ] Team Collaboration
+- [ ] Export Reports
+- [ ] Custom AI Personas
+
+### Version 3.0
+- [ ] Market Research Automation
+- [ ] Competitor Tracking
+- [ ] Funding Readiness Assessment
+- [ ] Multi-Language Support
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Open a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+**Vedansh Taparia**
+
+Building AI-powered products and startup tools.
+
+GitHub:
+https://github.com/10Vedansh
+
+---
+
+## ⭐ Support
+
+If you found this project useful:
+
+- Star the repository
+- Share feedback
+- Report issues
+- Suggest new features
+
+---
+
+**Validify AI — From napkin sketch to boardroom deck.**
