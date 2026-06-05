@@ -7,6 +7,7 @@ import {
   Presentation,
   MessageSquareText,
 } from "lucide-react";
+import { ease } from "@/lib/motion";
 
 const features = [
   {
@@ -25,7 +26,7 @@ const features = [
             initial={{ width: 0 }}
             whileInView={{ width: "78%" }}
             viewport={{ margin: "-40px" }}
-            transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1, delay: 0.2, ease }}
           />
         </div>
         <div className="flex flex-wrap gap-1">
@@ -49,7 +50,7 @@ const features = [
             initial={{ height: 0 }}
             whileInView={{ height: `${h}%` }}
             viewport={{ margin: "-40px" }}
-            transition={{ duration: 0.5, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5, delay: i * 0.06, ease }}
           />
         ))}
       </div>
@@ -88,7 +89,7 @@ const features = [
             <motion.div
               key={i}
               className="flex-1 rounded-t-sm"
-              style={{ backgroundColor: v > 60 ? "rgb(var(--primary) / 0.5)" : "oklch(1 0 0 / 0.08)" }}
+              style={{ backgroundColor: v > 60 ? "oklch(0.65 0.22 280 / 0.5)" : "oklch(1 0 0 / 0.08)" }}
               initial={{ height: 0 }}
               whileInView={{ height: `${v / 1.5}%` }}
               viewport={{ margin: "-40px" }}
@@ -163,9 +164,8 @@ const features = [
 const cardVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.04, duration: 0.35, ease },
   }),
 };
 
@@ -175,7 +175,7 @@ export function Features() {
       <div className="absolute top-1/3 right-0 h-[400px] w-[400px] rounded-full bg-indigo-500/4 blur-[130px] pointer-events-none" />
       <div className="absolute bottom-1/3 left-0 h-[350px] w-[350px] rounded-full bg-primary/4 blur-[110px] pointer-events-none" />
 
-      <div className="relative mx-auto max-w-6xl px-8">
+      <div className="relative mx-auto max-w-6xl px-6 sm:px-8">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -25,6 +25,7 @@ import { AreaChart } from "@/components/charts/AreaChart";
 import { WidgetSkeleton, RowSkeleton } from "@/components/common/Skeletons";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
+import { fadeUp, fadeIn, staggerContainer, ease } from "@/lib/motion";
 
 export const Route = createFileRoute("/dashboard/")({ component: Dashboard });
 
@@ -45,12 +46,10 @@ function AnimatedCounter({
     const start = prev.current;
     const end = value;
     const startTime = performance.now();
-
     if (start === end) {
       setDisplay(end);
       return;
     }
-
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
@@ -60,15 +59,37 @@ function AnimatedCounter({
       if (progress < 1) requestAnimationFrame(animate);
       else prev.current = end;
     };
-
     requestAnimationFrame(animate);
   }, [value, duration]);
 
+  return <span ref={ref}>{display}{suffix}</span>;
+}
+
+function ScoreRing({ score, size = 56 }: { score: number; size?: number }) {
+  const strokeWidth = 4;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - score / 100);
   return (
-    <span ref={ref}>
-      {display}
-      {suffix}
-    </span>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="oklch(1 0 0 / 0.06)" strokeWidth={strokeWidth} />
+      <motion.circle
+        cx={size / 2} cy={size / 2} r={radius} fill="none"
+        stroke={score >= 70 ? "#34d399" : score >= 50 ? "#fbbf24" : "#f87171"}
+        strokeWidth={strokeWidth} strokeLinecap="round"
+        strokeDasharray={circumference}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={{ duration: 1, ease }}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+      <text
+        x={size / 2} y={size / 2 + 1} textAnchor="middle" dominantBaseline="middle"
+        fill="white" fontSize="11" fontWeight="700" fontFamily="Inter, sans-serif"
+      >
+        {score}
+      </text>
+    </svg>
   );
 }
 
@@ -129,23 +150,13 @@ function Dashboard() {
 
   const recentActivity = useMemo(() => {
     const items: {
-      type: "idea" | "report";
-      label: string;
-      date: string;
-      id: string;
-      score?: number;
+      type: "idea" | "report"; label: string; date: string; id: string; score?: number;
     }[] = [];
     for (const idea of ideas) {
       items.push({ type: "idea", label: idea.name, date: idea.createdAt, id: idea.id });
     }
     for (const report of reports) {
-      items.push({
-        type: "report",
-        label: report.title,
-        date: report.createdAt,
-        id: report.id,
-        score: report.score.overall,
-      });
+      items.push({ type: "report", label: report.title, date: report.createdAt, id: report.id, score: report.score.overall });
     }
     items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return items.slice(0, 8);
@@ -156,11 +167,7 @@ function Dashboard() {
     return reports
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3)
-      .flatMap((r) =>
-        r.swot.strengths
-          .slice(0, 2)
-          .map((s) => ({ insight: s, reportId: r.id, reportTitle: r.title })),
-      )
+      .flatMap((r) => r.swot.strengths.slice(0, 2).map((s) => ({ insight: s, reportId: r.id, reportTitle: r.title })))
       .slice(0, 5);
   }, [reports]);
 
@@ -191,15 +198,11 @@ function Dashboard() {
           ))}
         </div>
         <div className="grid lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <WidgetSkeleton height="h-64" />
-          </div>
+          <div className="lg:col-span-2"><WidgetSkeleton height="h-64" /></div>
           <WidgetSkeleton height="h-64" />
         </div>
         <div className="grid lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <RowSkeleton rows={5} />
-          </div>
+          <div className="lg:col-span-2"><RowSkeleton rows={5} /></div>
           <RowSkeleton rows={4} />
         </div>
       </div>
@@ -210,49 +213,55 @@ function Dashboard() {
     return (
       <div className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease }}>
             <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight">
               Welcome{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
               Start validating your first idea to see insights here.
             </p>
-          </div>
-          <Link
-            to="/dashboard/validate"
-            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-          >
+          </motion.div>
+          <Link to="/dashboard/validate" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
             New validation <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-border bg-card">
-            <Inbox className="h-7 w-7 text-muted-foreground" />
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease }}
+          className="flex flex-col items-center justify-center py-24 text-center"
+        >
+          <div className="mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm">
+            <Inbox className="h-8 w-8 text-muted-foreground/60" />
           </div>
           <h2 className="text-lg font-semibold">No ideas yet</h2>
-          <p className="mt-1 max-w-md text-sm text-muted-foreground leading-relaxed">
-            Submit your first idea for AI validation and your dashboard will populate with scores,
-            reports, and recommendations.
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground leading-relaxed">
+            Submit your first idea for AI validation and your dashboard will populate with scores, reports, and recommendations.
           </p>
-          <Link to="/dashboard/validate" className="mt-6">
+          <Link to="/dashboard/validate" className="mt-8">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-              <span className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-medium shadow-sm">
+              <span className="inline-flex items-center gap-2 bg-gradient-to-b from-primary to-primary/85 text-primary-foreground px-6 py-3 rounded-xl font-medium shadow-lg shadow-primary/20">
                 <Sparkles className="h-4 w-4" />
                 Validate your first idea
               </span>
             </motion.div>
           </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <motion.div
+      className="space-y-8"
+      initial="hidden"
+      animate="visible"
+      variants={staggerContainer}
+    >
+      <motion.div variants={fadeUp} className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/60">
             Overview
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[28px]">
@@ -264,109 +273,74 @@ function Dashboard() {
         </div>
         <Link to="/dashboard/validate">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-            <span className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+            <span className="inline-flex items-center gap-2 bg-gradient-to-b from-primary to-primary/85 text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg shadow-primary/20">
               <Sparkles className="h-3.5 w-3.5" />
               New validation
             </span>
           </motion.div>
         </Link>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {[
-          {
-            icon: Lightbulb,
-            label: "Total Ideas",
-            value: String(totalIdeas),
-            accent: ideasDelta ? `${ideasDelta} this week` : undefined,
-          },
-          {
-            icon: Gauge,
-            label: "Avg Validation Score",
-            value: avgScore ? String(avgScore) : "—",
-            accent: avgScore ? `out of 100` : undefined,
-            delta: trendDelta,
-          },
-          {
-            icon: TrendingUp,
-            label: "Reports Generated",
-            value: String(validationsDone),
-            delta: trendDelta,
-          },
-          {
-            icon: Target,
-            label: "Top Score",
-            value: topScore ? String(topScore) : "—",
-            accent: topScore ? "best performance" : undefined,
-          },
-        ].map((s, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06, duration: 0.35 }}
-          >
-            <StatCard
-              icon={s.icon}
-              label={s.label}
-              value={s.value !== "—" ? <AnimatedCounter value={Number(s.value)} /> : "—"}
-              delta={s.delta}
-              accent={s.accent}
-            />
-          </motion.div>
-        ))}
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.35 }}
-        className="grid lg:grid-cols-3 gap-4"
+        variants={fadeUp}
+        className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card p-5">
+        <StatCard
+          icon={Lightbulb}
+          label="Total Ideas"
+          value={<AnimatedCounter value={totalIdeas} />}
+          accent={ideasDelta ? `${ideasDelta} this week` : undefined}
+        />
+        <StatCard
+          icon={Gauge}
+          label="Avg Validation Score"
+          value={avgScore ? <div className="flex items-center gap-2"><ScoreRing score={avgScore} /><span className="text-2xl">{avgScore}</span></div> : "—"}
+          delta={trendDelta}
+          accent={avgScore ? "out of 100" : undefined}
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Reports Generated"
+          value={<AnimatedCounter value={validationsDone} />}
+          delta={trendDelta}
+        />
+        <StatCard
+          icon={Target}
+          label="Top Score"
+          value={topScore ? <div className="flex items-center gap-2"><ScoreRing score={topScore} size={40} /><span className="text-2xl">{topScore}</span></div> : "—"}
+          accent={topScore ? "best performance" : undefined}
+        />
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
               Validation Trends
             </div>
             {trendsData.length > 0 && (
-              <Badge variant="outline" className="text-muted-foreground">
-                {reports.length} total
-              </Badge>
+              <Badge variant="outline" className="text-muted-foreground">{reports.length} total</Badge>
             )}
           </div>
           <p className="text-xs text-muted-foreground mb-4">Validations completed over time</p>
           {trendsData.length === 0 ? (
-            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              No data yet
-            </div>
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No data yet</div>
           ) : (
-            <AreaChart
-              data={trendsData}
-              xKey="month"
-              series={[{ key: "validations", label: "Validations" }]}
-              height={200}
-            />
+            <AreaChart data={trendsData} xKey="month" series={[{ key: "validations", label: "Validations" }]} height={200} />
           )}
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-1">
             <Layers className="h-4 w-4 text-muted-foreground" />
             Portfolio Summary
           </div>
           <p className="text-xs text-muted-foreground mb-4">Ideas by industry</p>
           {ideas.length === 0 ? (
-            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              No ideas yet
-            </div>
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No ideas yet</div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {Object.entries(portfolioByIndustry)
                 .sort(([, a], [, b]) => b.length - a.length)
                 .map(([industry, items]) => {
@@ -375,72 +349,48 @@ function Dashboard() {
                     <div key={industry}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm text-foreground">{industry}</span>
-                        <span className="text-xs text-muted-foreground tabular-nums">
-                          {items.length}
-                        </span>
+                        <span className="text-xs text-muted-foreground tabular-nums">{items.length}</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-primary/60 transition-all duration-500"
-                          style={{ width: `${pct}%` }}
-                        />
+                        <div className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary/40 transition-all duration-500" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   );
                 })}
               <div className="pt-2 text-xs text-muted-foreground">
-                {ideas.length} idea{ideas.length !== 1 ? "s" : ""} across{" "}
-                {Object.keys(portfolioByIndustry).length} industr
-                {Object.keys(portfolioByIndustry).length !== 1 ? "ies" : "y"}
+                {ideas.length} idea{ideas.length !== 1 ? "s" : ""} across {Object.keys(portfolioByIndustry).length} industr{Object.keys(portfolioByIndustry).length !== 1 ? "ies" : "y"}
               </div>
             </div>
           )}
         </div>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.35 }}
-        className="grid lg:grid-cols-3 gap-4"
-      >
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card p-5">
+      <motion.div variants={fadeUp} className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Activity className="h-4 w-4 text-muted-foreground" />
               Recent Activity
             </div>
             {recentActivity.length > 0 && (
-              <Badge variant="outline" className="text-muted-foreground">
-                {recentActivity.length} events
-              </Badge>
+              <Badge variant="outline" className="text-muted-foreground">{recentActivity.length} events</Badge>
             )}
           </div>
           <p className="text-xs text-muted-foreground mb-4">Latest actions across your workspace</p>
           {recentActivity.length === 0 ? (
-            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              No activity yet
-            </div>
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No activity yet</div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {recentActivity.map((item, i) => (
                 <div
                   key={`${item.type}-${item.id}-${i}`}
                   className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-accent/30"
                 >
-                  <div
-                    className={cn(
-                      "grid h-8 w-8 shrink-0 place-items-center rounded-lg border",
-                      item.type === "idea"
-                        ? "border-primary/20 bg-primary/10 text-primary"
-                        : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-                    )}
-                  >
-                    {item.type === "idea" ? (
-                      <Lightbulb className="h-3.5 w-3.5" />
-                    ) : (
-                      <BarChart3 className="h-3.5 w-3.5" />
-                    )}
+                  <div className={cn(
+                    "grid h-8 w-8 shrink-0 place-items-center rounded-xl border",
+                    item.type === "idea" ? "border-primary/20 bg-primary/10 text-primary" : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+                  )}>
+                    {item.type === "idea" ? <Lightbulb className="h-3.5 w-3.5" /> : <BarChart3 className="h-3.5 w-3.5" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm truncate text-foreground">
@@ -450,9 +400,7 @@ function Dashboard() {
                     <div className="text-xs text-muted-foreground">{formatDate(item.date)}</div>
                   </div>
                   {item.score !== undefined && (
-                    <Badge variant={item.score >= 70 ? "success" : "outline"} className="shrink-0">
-                      {item.score}
-                    </Badge>
+                    <Badge variant={item.score >= 70 ? "success" : "outline"} className="shrink-0">{item.score}</Badge>
                   )}
                 </div>
               ))}
@@ -460,29 +408,23 @@ function Dashboard() {
           )}
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow duration-300">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-1">
             <Brain className="h-4 w-4 text-muted-foreground" />
             AI Insights
           </div>
-          <p className="text-xs text-muted-foreground mb-4">
-            Key strengths from your latest reports
-          </p>
+          <p className="text-xs text-muted-foreground mb-4">Key strengths from your latest reports</p>
           {insights.length === 0 ? (
-            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              No insights yet
-            </div>
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No insights yet</div>
           ) : (
             <div className="space-y-3">
               {insights.map((item, i) => (
                 <Link
                   key={`${item.reportId}-${i}`}
                   to="/dashboard/reports"
-                  className="group block rounded-lg border border-border/50 bg-background/50 p-3 transition-all hover:border-border hover:bg-accent/20"
+                  className="group block rounded-lg border border-border/50 bg-background/50 p-3 transition-all hover:border-border hover:bg-accent/20 hover:shadow-sm"
                 >
-                  <p className="text-sm text-foreground leading-relaxed line-clamp-2">
-                    {item.insight}
-                  </p>
+                  <p className="text-sm text-foreground leading-relaxed line-clamp-2">{item.insight}</p>
                   <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                     <span className="truncate">{item.reportTitle}</span>
                     <ChevronRight className="h-3 w-3 shrink-0" />
@@ -493,6 +435,6 @@ function Dashboard() {
           )}
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

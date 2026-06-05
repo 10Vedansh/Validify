@@ -17,11 +17,11 @@ export function StatCard({
 }) {
   const trending = delta?.trim().startsWith("-") ? "down" : "up";
   return (
-    <div className="rounded-xl border border-border bg-card p-5 transition-all duration-150 hover:bg-card/80 hover:shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-5 transition-all duration-200 hover:bg-card/80 hover:shadow-md hover:border-border/80">
       <div className="flex items-center justify-between text-muted-foreground">
         <div className="flex items-center gap-2 text-xs">
-          {Icon && <Icon className="h-3.5 w-3.5" />}
-          <span className="text-[11px] font-medium uppercase tracking-wider">{label}</span>
+          {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/60" />}
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">{label}</span>
         </div>
         {delta && (
           <span

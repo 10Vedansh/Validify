@@ -10,7 +10,10 @@ import {
   TrendingUp,
   Zap,
   Shield,
+  Lock,
+  Server,
 } from "lucide-react";
+import { ease, fadeUp, fadeIn, staggerContainer, itemVariants } from "@/lib/motion";
 
 function ScoreCard() {
   const bars = [
@@ -21,20 +24,16 @@ function ScoreCard() {
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        y: [0, -12, 0],
-      }}
+      animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
       transition={{
-        opacity: { duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] },
-        x: { duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] },
-        y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0 },
+        opacity: { duration: 0.6, delay: 0.15, ease },
+        x: { duration: 0.6, delay: 0.15, ease },
+        y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0 },
       }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       className="absolute top-16 right-10 z-30 w-64"
     >
-      <div className="rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
+      <div className="rounded-2xl border border-white/[0.06] bg-black/50 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] font-semibold text-white/40 uppercase tracking-[0.12em]">
             Startup Validation Score
@@ -56,7 +55,7 @@ function ScoreCard() {
                   className={`h-full rounded-full ${bar.color}`}
                   initial={{ width: 0 }}
                   animate={{ width: `${bar.pct}%` }}
-                  transition={{ duration: 1, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 1, delay: 0.6, ease }}
                 />
               </div>
             </div>
@@ -105,18 +104,15 @@ function SWOTCard() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
-      animate={{
-        opacity: 1,
-        y: [0, -12, 0],
-      }}
+      animate={{ opacity: 1, y: [0, -10, 0] }}
       transition={{
-        opacity: { duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] },
-        y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 },
+        opacity: { duration: 0.6, delay: 0.3, ease },
+        y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 },
       }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-72"
     >
-      <div className="rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
+      <div className="rounded-2xl border border-white/[0.06] bg-black/50 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
         <div className="text-[10px] font-semibold text-white/40 uppercase tracking-[0.12em] mb-3">
           SWOT Analysis
         </div>
@@ -133,10 +129,7 @@ function SWOTCard() {
                   {q.label}
                 </div>
                 {q.items.map((item) => (
-                  <div
-                    key={item}
-                    className="text-[10px] text-white/40 leading-relaxed"
-                  >
+                  <div key={item} className="text-[10px] text-white/40 leading-relaxed">
                     {item}
                   </div>
                 ))}
@@ -150,29 +143,20 @@ function SWOTCard() {
 }
 
 function DeckCard() {
-  const slides = [
-    "Executive Summary",
-    "Market Analysis",
-    "Financial Model",
-    "Go-To-Market",
-  ];
+  const slides = ["Executive Summary", "Market Analysis", "Financial Model", "Go-To-Market"];
   return (
     <motion.div
       initial={{ opacity: 0, x: -40 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        y: [0, -12, 0],
-      }}
+      animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
       transition={{
-        opacity: { duration: 0.6, delay: 0.45, ease: [0.22, 1, 0.36, 1] },
-        x: { duration: 0.6, delay: 0.45, ease: [0.22, 1, 0.36, 1] },
-        y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 },
+        opacity: { duration: 0.6, delay: 0.45, ease },
+        x: { duration: 0.6, delay: 0.45, ease },
+        y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 },
       }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       className="absolute bottom-16 left-10 z-30 w-64"
     >
-      <div className="rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
+      <div className="rounded-2xl border border-white/[0.06] bg-black/50 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] font-semibold text-white/40 uppercase tracking-[0.12em]">
             Pitch Deck Generation
@@ -187,10 +171,7 @@ function DeckCard() {
         </div>
         <div className="space-y-1.5">
           {slides.map((slide) => (
-            <div
-              key={slide}
-              className="flex items-center gap-2 text-[11px] text-white/50"
-            >
+            <div key={slide} className="flex items-center gap-2 text-[11px] text-white/50">
               <div className="h-1 w-1 rounded-full bg-primary/60 shrink-0" />
               {slide}
             </div>
@@ -203,16 +184,16 @@ function DeckCard() {
 
 function LoginShowcase() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
       <motion.div
-        animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 -left-20 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[150px] pointer-events-none"
+        animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.12, 1] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/4 -left-20 h-[700px] w-[700px] rounded-full bg-gradient-to-br from-primary/12 to-violet-500/8 blur-[160px] pointer-events-none"
       />
       <motion.div
-        animate={{ opacity: [0.15, 0.3, 0.15], scale: [1, 1.15, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-1/4 -right-20 h-[500px] w-[500px] rounded-full bg-blue-500/6 blur-[120px] pointer-events-none"
+        animate={{ opacity: [0.12, 0.25, 0.12], scale: [1, 1.18, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute bottom-1/4 -right-20 h-[600px] w-[600px] rounded-full bg-gradient-to-tl from-indigo-500/6 to-primary/8 blur-[140px] pointer-events-none"
       />
       <ScoreCard />
       <SWOTCard />
@@ -228,16 +209,16 @@ function RegisterShowcase() {
     { value: "95%", label: "Founder Satisfaction", icon: TrendingUp },
   ];
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
       <motion.div
-        animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/3 -left-20 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[150px] pointer-events-none"
+        animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.12, 1] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/3 -left-20 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-primary/12 to-violet-500/8 blur-[160px] pointer-events-none"
       />
       <motion.div
-        animate={{ opacity: [0.15, 0.3, 0.15], scale: [1, 1.15, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-1/3 -right-20 h-[400px] w-[400px] rounded-full bg-blue-500/6 blur-[120px] pointer-events-none"
+        animate={{ opacity: [0.12, 0.25, 0.12], scale: [1, 1.18, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute bottom-1/3 -right-20 h-[500px] w-[500px] rounded-full bg-gradient-to-tl from-indigo-500/6 to-primary/8 blur-[140px] pointer-events-none"
       />
       <div className="flex flex-col items-center gap-6 w-full max-w-xs">
         {metrics.map((metric, i) => {
@@ -247,15 +228,11 @@ function RegisterShowcase() {
               key={metric.label}
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.5,
-                delay: 0.2 + i * 0.15,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.15, ease }}
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
               className="w-full"
             >
-              <div className="rounded-2xl border border-white/[0.06] bg-black/40 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
+              <div className="rounded-2xl border border-white/[0.06] bg-black/50 backdrop-blur-2xl p-5 shadow-2xl shadow-primary/5">
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
                     <Icon className="h-5 w-5 text-primary" />
@@ -285,6 +262,30 @@ function RegisterShowcase() {
   );
 }
 
+function TrustBadges() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, delay: 0.65 }}
+      className="flex items-center justify-center gap-4 sm:gap-6 text-[11px] text-muted-foreground/40"
+    >
+      <span className="flex items-center gap-1.5">
+        <Lock className="h-3 w-3" />
+        SOC2
+      </span>
+      <span className="flex items-center gap-1.5">
+        <Shield className="h-3 w-3" />
+        Secure Auth
+      </span>
+      <span className="flex items-center gap-1.5">
+        <Server className="h-3 w-3" />
+        Encrypted Data
+      </span>
+    </motion.div>
+  );
+}
+
 export function AuthLayout({
   title,
   subtitle,
@@ -299,22 +300,22 @@ export function AuthLayout({
   variant?: "login" | "register";
 }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-[2fr_3fr]">
-      {/* Left Panel */}
-      <div className="relative flex flex-col px-8 py-10 sm:px-14 lg:px-16 overflow-y-auto">
-        <div className="absolute -top-32 -left-32 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-32 -right-32 h-[300px] w-[300px] rounded-full bg-indigo-500/4 blur-[100px] pointer-events-none" />
+    <div className="grid min-h-screen lg:grid-cols-2">
+      {/* Left Panel - Form */}
+      <div className="relative flex flex-col px-6 py-8 sm:px-12 lg:px-16 overflow-y-auto">
+        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-primary/4 blur-[140px] pointer-events-none" />
+        <div className="absolute -bottom-32 -right-32 h-[400px] w-[400px] rounded-full bg-violet-500/3 blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col min-h-full">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, ease }}
             className="flex items-center gap-2.5"
           >
-            <div className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.03] shadow-sm">
-              <svg viewBox="0 0 20 20" className="h-5 w-5 text-white" aria-hidden="true">
+            <div className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-gradient-to-br from-primary/15 to-primary/5 shadow-sm">
+              <svg viewBox="0 0 20 20" className="h-5 w-5 text-primary" aria-hidden="true">
                 <path
                   d="M3 4l5 12 4-9 5 9"
                   fill="none"
@@ -325,14 +326,14 @@ export function AuthLayout({
                 />
               </svg>
             </div>
-            <span className="text-lg font-semibold tracking-tight text-white">Validify</span>
+            <span className="text-lg font-semibold tracking-tight text-foreground">Validify</span>
           </motion.div>
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-1.5 text-xs text-white/30 tracking-wide"
+            transition={{ duration: 0.4, delay: 0.1, ease }}
+            className="mt-1.5 text-xs text-muted-foreground/50 tracking-wide"
           >
             From napkin sketch to boardroom deck.
           </motion.p>
@@ -342,35 +343,36 @@ export function AuthLayout({
             <motion.h1
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="text-2xl font-semibold tracking-tight text-white"
+              transition={{ duration: 0.35, delay: 0.15, ease }}
+              className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground"
             >
-              {title}
+              {title === "Welcome back" ? "Pick up where you left off" : title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-1.5 text-sm text-white/50 leading-relaxed"
+              transition={{ duration: 0.35, delay: 0.2, ease }}
+              className="mt-1.5 text-sm text-muted-foreground/60 leading-relaxed"
             >
-              {subtitle}
+              {variant === "login"
+                ? "Continue building your startup with AI-powered validation."
+                : subtitle}
             </motion.p>
 
             {/* Form */}
             <motion.div
-              className="mt-8"
+              className="mt-10"
               initial="hidden"
               animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.05, delayChildren: 0.25 },
-                },
-              }}
+              variants={staggerContainer}
             >
               {children}
             </motion.div>
+
+            {/* Trust badges */}
+            <div className="mt-8">
+              <TrustBadges />
+            </div>
           </div>
 
           {/* Footer */}
@@ -379,7 +381,7 @@ export function AuthLayout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.5 }}
-              className="text-center text-sm text-white/40"
+              className="text-center text-sm text-muted-foreground/50"
             >
               {footer}
             </motion.div>
@@ -390,7 +392,7 @@ export function AuthLayout({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.55 }}
-            className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-white/25"
+            className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/30"
           >
             <Shield className="h-3 w-3" />
             <span>Your data is encrypted. Never used to train external models.</span>
@@ -398,12 +400,10 @@ export function AuthLayout({
         </div>
       </div>
 
-      {/* Right Panel */}
-      <div className="relative hidden lg:flex overflow-hidden bg-[oklch(0.10_0.003_270)]">
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,oklch(1_0_0/0.02)_1px,transparent_1px),linear-gradient(to_bottom,oklch(1_0_0/0.02)_1px,transparent_1px)] bg-[length:56px_56px] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]" />
+      {/* Right Panel - Showcase */}
+      <div className="relative hidden lg:flex overflow-hidden bg-[oklch(0.10_0.004_275)]">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,oklch(1_0_0/0.018)_1px,transparent_1px),linear-gradient(to_bottom,oklch(1_0_0/0.018)_1px,transparent_1px)] bg-[length:56px_56px] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]" />
 
-        {/* Noise texture */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -414,17 +414,15 @@ export function AuthLayout({
           }}
         />
 
-        {/* Content */}
         <motion.div
           className="relative flex-1 flex items-center justify-center"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.1, ease }}
         >
           {variant === "login" ? <LoginShowcase /> : <RegisterShowcase />}
         </motion.div>
 
-        {/* Bottom label */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -441,7 +439,7 @@ export function AuthLayout({
       </div>
 
       {/* Mobile: Dashboard preview below form */}
-      <div className="relative lg:hidden overflow-hidden bg-[oklch(0.10_0.003_270)] border-t border-white/[0.06]">
+      <div className="relative lg:hidden overflow-hidden bg-[oklch(0.10_0.004_275)] border-t border-border/60">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,oklch(1_0_0/0.02)_1px,transparent_1px),linear-gradient(to_bottom,oklch(1_0_0/0.02)_1px,transparent_1px)] bg-[length:56px_56px]" />
         <div
           className="absolute inset-0 pointer-events-none"

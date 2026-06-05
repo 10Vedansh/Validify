@@ -22,7 +22,7 @@ export function Topbar() {
   const { search, setSearch } = useDashboardStore();
   const { user, logout } = useAuth();
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl sm:px-6">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild className="lg:hidden">
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -43,17 +43,17 @@ export function Topbar() {
       />
 
       <div className="ml-auto flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="hidden h-8 w-8 sm:inline-flex">
+        <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex">
           <Command className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="relative h-8 w-8">
+        <Button variant="ghost" size="icon-sm" className="relative">
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="ml-1 flex h-8 items-center gap-2 rounded-md px-1.5 transition-all duration-150 hover:bg-accent/50">
-              <div className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+            <button className="ml-1 flex h-8 items-center gap-2 rounded-lg px-1.5 transition-all duration-150 hover:bg-accent/50">
+              <div className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-[10px] font-semibold text-primary-foreground shadow-sm">
                 {user ? initials(user.name) : "?"}
               </div>
               <span className="hidden text-sm font-medium sm:inline">

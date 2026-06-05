@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { ease } from "@/lib/motion";
 
 const plans = [
   {
@@ -44,18 +45,17 @@ const plans = [
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.06, duration: 0.35, ease },
   }),
 };
 
 export function Pricing() {
   return (
     <section id="pricing" className="relative border-b border-border/40 py-20 sm:py-24 overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-primary/6 to-violet-500/4 blur-[140px] pointer-events-none" />
 
-      <div className="relative mx-auto max-w-6xl px-8">
+      <div className="relative mx-auto max-w-6xl px-6 sm:px-8">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -78,7 +78,7 @@ export function Pricing() {
               variants={cardVariants}
               initial="hidden"
               whileInView="visible"
-               viewport={{ margin: "-20px" }}
+              viewport={{ margin: "-20px" }}
               whileHover={{ y: -2 }}
               className={cn(
                 "rounded-2xl border p-7 flex flex-col transition-all duration-300",
@@ -95,9 +95,7 @@ export function Pricing() {
               <div className="text-sm text-foreground/60 font-medium">{plan.name}</div>
               <div className="mt-1 flex items-baseline gap-1">
                 <span className="text-3xl font-medium tracking-tight">{plan.price}</span>
-                {plan.period && (
-                  <span className="text-sm text-muted-foreground/40">{plan.period}</span>
-                )}
+                {plan.period && <span className="text-sm text-muted-foreground/40">{plan.period}</span>}
               </div>
               <p className="mt-2 text-sm text-muted-foreground/50">{plan.description}</p>
               <ul className="mt-6 space-y-2.5 flex-1">
@@ -109,10 +107,7 @@ export function Pricing() {
                 ))}
               </ul>
               <Link to="/register" className="mt-6 block">
-                <Button
-                  className="w-full rounded-xl transition-all duration-200 active:scale-[0.97]"
-                  variant={plan.featured ? "default" : "outline"}
-                >
+                <Button className="w-full rounded-xl transition-all duration-200" variant={plan.featured ? "default" : "outline"}>
                   {plan.cta}
                 </Button>
               </Link>

@@ -1,5 +1,6 @@
 import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
+import { ease } from "@/lib/motion";
 
 const columns = [
   { t: "Product", l: ["Features", "Pricing", "Changelog", "Dashboard"] },
@@ -9,22 +10,18 @@ const columns = [
 
 const colVariants = {
   hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease } },
 };
 
 export function Footer() {
   return (
     <motion.footer
-      className="py-14 sm:py-16"
+      className="py-14 sm:py-16 border-t border-border/20"
       initial="hidden"
       whileInView="visible"
       viewport={{ margin: "-20px" }}
     >
-      <div className="mx-auto max-w-6xl px-8">
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
           <motion.div className="sm:col-span-1" variants={colVariants}>
             <Logo />
@@ -34,8 +31,8 @@ export function Footer() {
           </motion.div>
           {columns.map((c) => (
             <motion.div key={c.t} variants={colVariants}>
-              <div className="text-sm font-medium mb-3 text-foreground/60">{c.t}</div>
-              <ul className="space-y-2.5">
+              <div className="text-sm font-medium mb-4 text-foreground/60">{c.t}</div>
+              <ul className="space-y-3">
                 {c.l.map((i) => (
                   <li key={i}>
                     <a
@@ -51,7 +48,7 @@ export function Footer() {
           ))}
         </div>
         <motion.div
-          className="mt-10 pt-5 border-t border-border/20 flex flex-col sm:flex-row justify-between gap-2 text-xs text-muted-foreground/30"
+          className="mt-12 pt-6 border-t border-border/20 flex flex-col sm:flex-row justify-between gap-2 text-xs text-muted-foreground/30"
           variants={colVariants}
         >
           <div>&copy; 2026 Validify AI</div>
