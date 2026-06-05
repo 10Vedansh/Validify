@@ -1,20 +1,5 @@
 import { aiConfig } from "@/config/ai";
 
-// ⚠ DEPRECATED — use @/lib/gemini instead
-
-/**
- * OpenRouter API client.
- *
- * Features:
- *   - Automatic retries with exponential backoff
- *   - Configurable timeout per request
- *   - Fallback model if primary fails
- *   - JSON-only mode for structured parsing
- *   - Token usage tracking
- */
-
-// ─── Types ────────────────────────────────────────────────────────────
-
 export interface OpenRouterMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -50,8 +35,6 @@ export interface OpenRouterError {
   };
 }
 
-// ─── Retry logic ──────────────────────────────────────────────────────
-
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -86,7 +69,6 @@ async function withRetry<T>(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
-      // Don't retry on 4xx errors (except 429 rate limit)
       if (error instanceof HttpError && error.statusCode >= 400 && error.statusCode < 500 && error.statusCode !== 429) {
         throw error;
       }
@@ -102,8 +84,6 @@ async function withRetry<T>(
   throw lastError ?? new Error("All retry attempts exhausted");
 }
 
-// ─── HTTP error ───────────────────────────────────────────────────────
-
 export class HttpError extends Error {
   constructor(
     public statusCode: number,
@@ -115,16 +95,18 @@ export class HttpError extends Error {
   }
 }
 
-// ─── Core completion function ─────────────────────────────────────────
-
 async function executeCompletion(
   request: OpenRouterRequest,
   signal?: AbortSignal,
 ): Promise<OpenRouterResponse> {
-  const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
+  const apiKey = aiConfig.openrouter.apiKey();
+
+  console.log(`[OpenRouter] POST ${request.model} (${request.messages.length} messages, ${JSON.stringify(request.messages).length} bytes)`);
+
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY ?? ""}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": "https://validify.app",
       "X-Title": "Validify",
@@ -138,16 +120,16 @@ async function executeCompletion(
     try {
       const errorJson = (await response.json()) as OpenRouterError;
       errorBody = errorJson.error?.message ?? response.statusText;
+      console.error(`[OpenRouter] HTTP ${response.status} — ${errorBody}`);
     } catch {
       errorBody = response.statusText;
     }
     throw new HttpError(response.status, errorBody ?? "OpenRouter request failed");
   }
 
+  console.log(`[OpenRouter] HTTP 200 — response received`);
   return response.json() as Promise<OpenRouterResponse>;
 }
-
-// ─── Public API ───────────────────────────────────────────────────────
 
 export interface CompletionOptions {
   model?: string;
@@ -155,17 +137,13 @@ export interface CompletionOptions {
   maxTokens?: number;
 }
 
-/**
- * Send a completion request to OpenRouter with retry and timeout.
- *
- * If the primary model fails with a server error, it automatically
- * falls back to the configured fallback model.
- */
 export async function complete(
   messages: OpenRouterMessage[],
   options: CompletionOptions = {},
 ): Promise<{ content: string; model: string; usage: { prompt: number; completion: number; total: number } }> {
-  const model = options.model ?? "openai/gpt-4o";
+  const model = options.model ?? aiConfig.openrouter.primaryModel;
+
+  console.log(`[AI] OpenRouter primary model: ${model}`);
 
   const request: OpenRouterRequest = {
     model,
@@ -178,6 +156,8 @@ export async function complete(
   try {
     const response = await withRetry(async () => executeCompletion(request));
 
+    console.log(`[AI] OpenRouter response: model=${response.model}, tokens=${response.usage?.total_tokens}`);
+
     return {
       content: response.choices[0]?.message?.content ?? "",
       model: response.model ?? model,
@@ -188,45 +168,103 @@ export async function complete(
       },
     };
   } catch (error) {
-    // Attempt fallback model on server errors
-    const fallbackModel = "anthropic/claude-3.5-sonnet";
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[AI] OpenRouter ERROR (${model}): ${errorMessage}`);
+    if (error instanceof HttpError) {
+      console.error(`[AI] OpenRouter HTTP ${error.statusCode}: ${error.body ?? error.message}`);
+    }
+
+    const fallbackModel = aiConfig.openrouter.fallbackModel;
     if (model !== fallbackModel) {
-      console.warn(`[OpenRouter] Primary model ${model} failed. Falling back to ${fallbackModel}...`);
+      console.warn(`[AI] OpenRouter falling back to ${fallbackModel}...`);
 
       const fallbackRequest: OpenRouterRequest = {
         ...request,
         model: fallbackModel,
       };
 
-      const response = await withRetry(async () => executeCompletion(fallbackRequest));
+      try {
+        const response = await withRetry(async () => executeCompletion(fallbackRequest));
 
-      return {
-        content: response.choices[0]?.message?.content ?? "",
-        model: response.model ?? fallbackModel,
-        usage: {
-          prompt: response.usage?.prompt_tokens ?? 0,
-          completion: response.usage?.completion_tokens ?? 0,
-          total: response.usage?.total_tokens ?? 0,
-        },
-      };
+        console.log(`[AI] OpenRouter fallback succeeded`);
+
+        return {
+          content: response.choices[0]?.message?.content ?? "",
+          model: response.model ?? fallbackModel,
+          usage: {
+            prompt: response.usage?.prompt_tokens ?? 0,
+            completion: response.usage?.completion_tokens ?? 0,
+            total: response.usage?.total_tokens ?? 0,
+          },
+        };
+      } catch (fallbackError) {
+        const fbMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error(`[AI] OpenRouter fallback ALSO failed: ${fbMessage}`);
+        throw fallbackError;
+      }
     }
 
     throw error;
   }
 }
 
-/**
- * Parse the JSON content from an LLM response.
- * Handles markdown code fences and leading/trailing whitespace.
- */
 export function parseJSON<T>(content: string): T {
   let cleaned = content.trim();
 
-  // Remove markdown code fences if present
   const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (jsonMatch) {
     cleaned = jsonMatch[1].trim();
   }
 
   return JSON.parse(cleaned) as T;
+}
+
+/**
+ * Test connectivity to the OpenRouter API.
+ * Sends a minimal prompt and returns the connection status.
+ */
+export async function testConnection(): Promise<{
+  ok: boolean;
+  latencyMs: number;
+  status?: number;
+  error?: string;
+  model?: string;
+}> {
+  const start = Date.now();
+  try {
+    const apiKey = aiConfig.openrouter.apiKey();
+    const model = aiConfig.openrouter.primaryModel;
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://validify.app",
+        "X-Title": "Validify",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: "Hi" }],
+        max_tokens: 10,
+      }),
+    });
+
+    const latencyMs = Date.now() - start;
+
+    if (!response.ok) {
+      let errorMsg = response.statusText;
+      try {
+        const errJson = (await response.json()) as OpenRouterError;
+        errorMsg = errJson.error?.message ?? errorMsg;
+      } catch { /* ignore */ }
+      return { ok: false, latencyMs, status: response.status, error: errorMsg };
+    }
+
+    return { ok: true, latencyMs, model };
+  } catch (err) {
+    const latencyMs = Date.now() - start;
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, latencyMs, error: msg };
+  }
 }

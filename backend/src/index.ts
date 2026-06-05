@@ -16,6 +16,7 @@ import { chatRoutes } from "@/routes/chat.routes";
 import { userRoutes } from "@/routes/user.routes";
 import { adminRoutes } from "@/routes/admin.routes";
 import { pitchDeckRoutes } from "@/routes/pitch-deck.routes";
+import { debugRoutes } from "@/routes/debug.routes";
 import { env } from "@/config/env";
 
 const app = new Hono();
@@ -103,6 +104,10 @@ api.route("/", userRoutes);
 api.route("/admin", adminRoutes);
 api.route("/pitch-decks", pitchDeckRoutes);
 app.route("/api", api);
+
+// ─── Debug / AI Health routes (no auth) ──────────────────────────────
+
+app.route("/debug", debugRoutes);
 
 // ─── Start Server (Node.js) ──────────────────────────────────────────
 

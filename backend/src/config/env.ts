@@ -22,6 +22,9 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().default(""),
   GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
   GEMINI_FALLBACK_MODEL: z.string().default("gemini-2.0-flash-lite"),
+
+  // OpenRouter
+  OPENROUTER_API_KEY: z.string().default(""),
 });
 
 function loadEnv() {
@@ -37,13 +40,48 @@ function loadEnv() {
 
   const env = parsed.data;
 
+  // ─── AI provider startup validation ──────────────────────────────
+  console.log("");
+  console.log("╔══════════════════════════════════════════════════╗");
+  console.log("║       AI Provider Configuration                  ║");
+  console.log("╚══════════════════════════════════════════════════╝");
+
+  if (env.GEMINI_API_KEY) {
+    console.log(`  ✓ GEMINI_API_KEY       present (${env.GEMINI_API_KEY.substring(0, 8)}...${env.GEMINI_API_KEY.slice(-4)})`);
+  } else {
+    console.log(`  ✗ GEMINI_API_KEY       NOT SET — Gemini provider disabled`);
+  }
+  console.log(`  ✓ GEMINI_MODEL         ${env.GEMINI_MODEL}`);
+  console.log(`  ✓ GEMINI_FALLBACK_MODEL ${env.GEMINI_FALLBACK_MODEL}`);
+
+  if (env.OPENROUTER_API_KEY) {
+    console.log(`  ✓ OPENROUTER_API_KEY   present (${env.OPENROUTER_API_KEY.substring(0, 8)}...${env.OPENROUTER_API_KEY.slice(-4)})`);
+  } else {
+    console.log(`  ✗ OPENROUTER_API_KEY   NOT SET — OpenRouter fallback disabled`);
+  }
+  console.log("─────────────────────────────────────────────────────────");
+
+  if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
+    console.log("  WARNING: No AI provider configured.");
+    console.log("  AI chat and validation features will return errors.");
+    console.log("  To fix: set GEMINI_API_KEY or OPENROUTER_API_KEY");
+    console.log("  in your Render environment variables.");
+    console.log("  Get a Gemini key: https://aistudio.google.com/app/apikey");
+    console.log("  Get an OpenRouter key: https://openrouter.ai/keys");
+  } else if (!env.GEMINI_API_KEY) {
+    console.log("  Note: Only OpenRouter is configured (set as fallback).");
+  } else if (!env.OPENROUTER_API_KEY) {
+    console.log("  Note: Only Gemini is configured (no OpenRouter fallback).");
+  } else {
+    console.log("  Both Gemini and OpenRouter are configured.");
+  }
+  console.log("─────────────────────────────────────────────────────────");
+  console.log("");
+
   // Warn about dev JWT secrets in production
   if (env.NODE_ENV === "production") {
     if (env.JWT_ACCESS_SECRET.length < 48 || env.JWT_REFRESH_SECRET.length < 48) {
-      console.warn("   WARNING: Using weak/default JWT secrets in production. Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET to strong random values (64+ chars).");
-    }
-    if (!env.GEMINI_API_KEY) {
-      console.warn("   WARNING: GEMINI_API_KEY is not set. AI validation features will fail.");
+      console.warn("   WARNING: Using weak/default JWT secrets in production.");
     }
   }
 

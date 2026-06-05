@@ -116,6 +116,8 @@ async function executeCompletion(
   const apiKey = aiConfig.gemini.apiKey();
   const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
 
+  console.log(`[Gemini] POST ${model}:generateContent (${JSON.stringify(request.contents).length} bytes)`);
+
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -126,14 +128,19 @@ async function executeCompletion(
   if (!response.ok) {
     let errorBody: string | undefined;
     try {
-      const errorJson = (await response.json()) as { error?: { message: string } };
+      const errorJson = (await response.json()) as { error?: { message: string; status?: string; code?: number } };
       errorBody = errorJson.error?.message ?? response.statusText;
+      console.error(`[Gemini] HTTP ${response.status} — ${errorBody}`);
+      if (errorJson.error?.status) {
+        console.error(`[Gemini] Status: ${errorJson.error.status}`);
+      }
     } catch {
       errorBody = response.statusText;
     }
     throw new HttpError(response.status, errorBody ?? "Gemini request failed");
   }
 
+  console.log(`[Gemini] HTTP 200 — response received`);
   return response.json() as Promise<GeminiResponse>;
 }
 
@@ -149,6 +156,9 @@ export async function complete(
 ): Promise<{ content: string; model: string; usage: { prompt: number; completion: number; total: number } }> {
   const model = options.model ?? aiConfig.gemini.primaryModel;
   const { systemInstruction, contents } = convertMessages(messages);
+
+  console.log(`[AI] Gemini primary model: ${model}`);
+  console.log(`[AI] Messages: ${messages.length} (system: ${systemInstruction ? 1 : 0}, content: ${contents.length})`);
 
   const geminiRequest: GeminiRequest = {
     contents,
@@ -166,6 +176,8 @@ export async function complete(
     const candidate = response.candidates?.[0];
     const text = candidate?.content?.parts?.[0]?.text ?? "";
 
+    console.log(`[AI] Gemini response: finish=${candidate?.finishReason}, tokens=${response.usageMetadata?.totalTokenCount}`);
+
     return {
       content: text,
       model,
@@ -176,24 +188,38 @@ export async function complete(
       },
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[AI] Gemini ERROR (${model}): ${errorMessage}`);
+    if (error instanceof HttpError) {
+      console.error(`[AI] Gemini HTTP ${error.statusCode}: ${error.body ?? error.message}`);
+    }
+
     if (model !== aiConfig.gemini.fallbackModel) {
-      console.warn(`[Gemini] Primary model ${model} failed. Falling back to ${aiConfig.gemini.fallbackModel}...`);
+      console.warn(`[AI] Falling back to ${aiConfig.gemini.fallbackModel}...`);
 
       const fallbackRequest = { ...geminiRequest };
-      const response = await withRetry(async () => executeCompletion(aiConfig.gemini.fallbackModel!, fallbackRequest));
+      try {
+        const response = await withRetry(async () => executeCompletion(aiConfig.gemini.fallbackModel!, fallbackRequest));
 
-      const candidate = response.candidates?.[0];
-      const text = candidate?.content?.parts?.[0]?.text ?? "";
+        const candidate = response.candidates?.[0];
+        const text = candidate?.content?.parts?.[0]?.text ?? "";
 
-      return {
-        content: text,
-        model: aiConfig.gemini.fallbackModel!,
-        usage: {
-          prompt: response.usageMetadata?.promptTokenCount ?? 0,
-          completion: response.usageMetadata?.candidatesTokenCount ?? 0,
-          total: response.usageMetadata?.totalTokenCount ?? 0,
-        },
-      };
+        console.log(`[AI] Gemini fallback succeeded: finish=${candidate?.finishReason}`);
+
+        return {
+          content: text,
+          model: aiConfig.gemini.fallbackModel!,
+          usage: {
+            prompt: response.usageMetadata?.promptTokenCount ?? 0,
+            completion: response.usageMetadata?.candidatesTokenCount ?? 0,
+            total: response.usageMetadata?.totalTokenCount ?? 0,
+          },
+        };
+      } catch (fallbackError) {
+        const fbMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error(`[AI] Gemini fallback ALSO failed: ${fbMessage}`);
+        throw fallbackError;
+      }
     }
 
     throw error;
@@ -206,6 +232,9 @@ export async function completeChat(
 ): Promise<{ content: string; model: string; usage: { prompt: number; completion: number; total: number } }> {
   const model = options.model ?? aiConfig.gemini.primaryModel;
   const { systemInstruction, contents } = convertMessages(messages);
+
+  console.log(`[AI] Chat — Gemini primary model: ${model}`);
+  console.log(`[AI] Chat — Messages: ${messages.length} (system: ${systemInstruction ? 1 : 0}, content: ${contents.length})`);
 
   const geminiRequest: GeminiRequest = {
     contents,
@@ -222,6 +251,8 @@ export async function completeChat(
     const candidate = response.candidates?.[0];
     const text = candidate?.content?.parts?.[0]?.text ?? "";
 
+    console.log(`[AI] Chat — Gemini response: finish=${candidate?.finishReason}, tokens=${response.usageMetadata?.totalTokenCount}`);
+
     return {
       content: text,
       model,
@@ -232,8 +263,14 @@ export async function completeChat(
       },
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[AI] Chat — Gemini ERROR (${model}): ${errorMessage}`);
+    if (error instanceof HttpError) {
+      console.error(`[AI] Chat — Gemini HTTP ${error.statusCode}: ${error.body ?? error.message}`);
+    }
+
     if (model !== aiConfig.gemini.fallbackModel) {
-      console.warn(`[Gemini] Primary model ${model} failed: ${error instanceof Error ? error.message : error}. Falling back to ${aiConfig.gemini.fallbackModel}...`);
+      console.warn(`[AI] Chat — Falling back to ${aiConfig.gemini.fallbackModel}...`);
 
       try {
         const fallbackRequest = { ...geminiRequest };
@@ -241,6 +278,8 @@ export async function completeChat(
 
         const candidate = response.candidates?.[0];
         const text = candidate?.content?.parts?.[0]?.text ?? "";
+
+        console.log(`[AI] Chat — Gemini fallback succeeded: finish=${candidate?.finishReason}`);
 
         return {
           content: text,
@@ -252,7 +291,8 @@ export async function completeChat(
           },
         };
       } catch (fallbackError) {
-        console.error(`[Gemini] Fallback model ${aiConfig.gemini.fallbackModel} also failed: ${fallbackError instanceof Error ? fallbackError.message : fallbackError}`);
+        const fbMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error(`[AI] Chat — Gemini fallback ALSO failed: ${fbMessage}`);
         throw fallbackError;
       }
     }
@@ -270,4 +310,53 @@ export function parseJSON<T>(content: string): T {
   }
 
   return JSON.parse(cleaned) as T;
+}
+
+/**
+ * Test connectivity to the Gemini API.
+ * Sends a minimal prompt and returns the connection status.
+ */
+export async function testConnection(): Promise<{
+  ok: boolean;
+  latencyMs: number;
+  status?: number;
+  error?: string;
+  model?: string;
+}> {
+  const start = Date.now();
+  try {
+    const apiKey = aiConfig.gemini.apiKey();
+    const model = aiConfig.gemini.primaryModel;
+    const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`;
+    const body = JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: "Hi" }] }],
+      generationConfig: { temperature: 0, maxOutputTokens: 10 },
+    });
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+
+    const latencyMs = Date.now() - start;
+
+    if (!res.ok) {
+      let errorMsg = res.statusText;
+      try {
+        const errJson = (await res.json()) as { error?: { message: string; status?: string } };
+        errorMsg = errJson.error?.message ?? errorMsg;
+        if (errJson.error?.status) {
+          errorMsg = `${errJson.error.status}: ${errorMsg}`;
+        }
+      } catch { /* ignore */ }
+      return { ok: false, latencyMs, status: res.status, error: errorMsg };
+    }
+
+    return { ok: true, latencyMs, model };
+  } catch (err) {
+    const latencyMs = Date.now() - start;
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, latencyMs, error: msg };
+  }
 }

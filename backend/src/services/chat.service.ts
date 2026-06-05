@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
-import { completeChat } from "@/lib/gemini";
-import { complete as openRouterComplete } from "@/lib/openrouter";
+import { aiConfig } from "@/config/ai";
+import { completeChat, HttpError as GeminiHttpError } from "@/lib/gemini";
+import { complete as openRouterComplete, HttpError as OrHttpError } from "@/lib/openrouter";
 
 export interface ChatThreadResponse {
   id: string;
@@ -31,6 +32,29 @@ function serializeMessage(msg: { id: string; role: string; content: string; crea
     content: msg.content,
     createdAt: msg.createdAt.toISOString(),
   };
+}
+
+function formatAiError(error: unknown): string {
+  if (error instanceof GeminiHttpError) {
+    const status = error.statusCode;
+    const body = error.body ?? error.message;
+    if (status === 429) return `AI Rate Limit: ${body}`;
+    if (status === 401 || status === 403) return `AI Authentication Failed: ${body}`;
+    if (status === 404) return `AI Model Not Found: ${body}`;
+    if (status === 400) return `AI Request Error: ${body}`;
+    if (status >= 500) return `AI Provider Error (${status}): ${body}`;
+    return `AI Error (${status}): ${body}`;
+  }
+  if (error instanceof OrHttpError) {
+    return `AI Fallback Error (${error.statusCode}): ${error.body ?? error.message}`;
+  }
+  if (error instanceof TypeError && error.message === "fetch failed") {
+    return "AI Provider Unreachable — check network or API endpoint";
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("API_KEY")) return "AI Provider: Invalid or missing API key";
+  if (message.includes("quota") || message.includes("rate limit")) return "AI Provider: Rate limit exceeded";
+  return `AI Error: ${message}`;
 }
 
 export const chatService = {
@@ -105,6 +129,7 @@ Guidelines:
     let modelUsed = "";
     let tokensIn = 0;
     let tokensOut = 0;
+    let errorDetails = "";
 
     try {
       const result = await completeChat(geminiMessages, { temperature: 0.7, maxTokens: 1024 });
@@ -113,18 +138,29 @@ Guidelines:
       tokensIn = result.usage.prompt;
       tokensOut = result.usage.completion;
     } catch (error) {
-      console.error("[Chat] Gemini response failed:", error instanceof Error ? error.message : error);
+      const primaryError = formatAiError(error);
+      console.error(`[Chat] Gemini failed: ${primaryError}`);
+      if (error instanceof Error && error.stack) {
+        console.error(`[Chat] Stack: ${error.stack.split("\n").slice(0, 3).join("\n")}`);
+      }
 
-      // Try OpenRouter as secondary fallback if configured
-      const openRouterKey = process.env.OPENROUTER_API_KEY;
-      if (openRouterKey) {
+      let openRouterAvailable = false;
+      try {
+        aiConfig.openrouter.apiKey();
+        openRouterAvailable = true;
+      } catch {
+        openRouterAvailable = false;
+      }
+
+      if (openRouterAvailable) {
+        console.warn(`[Chat] Trying OpenRouter fallback...`);
         try {
           const openRouterMessages = geminiMessages.map((m) => ({
             role: m.role as "system" | "user" | "assistant",
             content: m.content,
           }));
           const result = await openRouterComplete(openRouterMessages, {
-            model: "openai/gpt-4o-mini",
+            model: aiConfig.openrouter.primaryModel,
             temperature: 0.7,
             maxTokens: 1024,
           });
@@ -132,12 +168,16 @@ Guidelines:
           modelUsed = result.model;
           tokensIn = result.usage.prompt;
           tokensOut = result.usage.completion;
+          console.log(`[Chat] OpenRouter fallback succeeded: model=${modelUsed}`);
         } catch (orError) {
-          console.error("[Chat] OpenRouter fallback also failed:", orError instanceof Error ? orError.message : orError);
-          assistantContent = "I'm sorry, I'm having trouble connecting to my AI service right now. Please try again in a moment.";
+          const fallbackError = formatAiError(orError);
+          console.error(`[Chat] OpenRouter fallback also failed: ${fallbackError}`);
+          errorDetails = `Gemini: ${primaryError} | OpenRouter: ${fallbackError}`;
+          assistantContent = `I'm having trouble with the AI service right now.\n\nDetails: ${errorDetails}`;
         }
       } else {
-        assistantContent = "I'm sorry, I'm having trouble connecting to my AI service right now. Please try again in a moment.";
+        errorDetails = primaryError;
+        assistantContent = `I'm having trouble with the AI service right now.\n\nDetails: ${errorDetails}\n\nTo fix this, set a valid GEMINI_API_KEY (or OPENROUTER_API_KEY) in your Render environment variables.`;
       }
     }
 
