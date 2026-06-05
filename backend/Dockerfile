@@ -70,4 +70,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 # tsx runs the source directly — it resolves @/* path aliases
 # from tsconfig.json and transpiles on-the-fly.
-CMD ["dumb-init", "npx", "tsx", "src/index.ts"]
+# Migrations run before the app starts to ensure the schema is current.
+CMD ["dumb-init", "sh", "-c", "npx prisma migrate deploy && npx tsx src/index.ts"]
