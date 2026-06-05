@@ -15,6 +15,12 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Target,
+  BarChart3,
+  TrendingUp,
+  ShieldCheck,
+  Gauge,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { ideasService } from "@/services/ideas.service";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { staggerContainer, fadeUp } from "@/lib/motion";
 
 export const Route = createFileRoute("/dashboard/validate")({ component: Validate });
 
@@ -43,10 +50,6 @@ const steps = [
   { label: "Generating report", key: "report" },
   { label: "Done", key: "done" },
 ];
-
-function SectionDivider() {
-  return <div className="border-t border-border/50 my-6" />;
-}
 
 function FieldHint({ children }: { children: string }) {
   return <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{children}</p>;
@@ -84,10 +87,7 @@ function FileUpload({ files, onFiles }: { files: File[]; onFiles: (f: File[]) =>
   return (
     <div>
       <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
@@ -116,10 +116,7 @@ function FileUpload({ files, onFiles }: { files: File[]; onFiles: (f: File[]) =>
       {files.length > 0 && (
         <div className="mt-3 space-y-1.5">
           {files.map((f, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm"
-            >
+            <div key={i} className="flex items-center gap-2 rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm">
               <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="flex-1 truncate text-foreground">{f.name}</span>
               <span className="shrink-0 text-xs text-muted-foreground">
@@ -127,10 +124,7 @@ function FileUpload({ files, onFiles }: { files: File[]; onFiles: (f: File[]) =>
               </span>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeFile(i);
-                }}
+                onClick={(e) => { e.stopPropagation(); removeFile(i); }}
                 className="ml-1 rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
@@ -166,16 +160,31 @@ function ValidationProgress({ visible }: { visible: boolean }) {
 
   if (!visible) return null;
 
+  const completionPct = Math.round(((currentStep) / (steps.length - 1)) * 100);
+
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl border border-border bg-card p-6"
+    >
       <div className="flex items-center gap-3 mb-5">
-        <div className="relative grid h-8 w-8 place-items-center">
+        <div className="relative grid h-9 w-9 place-items-center">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <div className="text-sm font-medium text-foreground">Validating your idea</div>
-          <p className="text-xs text-muted-foreground">This usually takes 15&ndash;30 seconds</p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Analyzing market viability</span>
+            <span className="tabular-nums">&middot; {completionPct}%</span>
+          </div>
         </div>
+      </div>
+      <div className="h-1.5 rounded-full bg-muted mb-5 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-500"
+          style={{ width: `${completionPct}%` }}
+        />
       </div>
       <div className="space-y-2">
         {steps.map((s, i) => {
@@ -193,19 +202,93 @@ function ValidationProgress({ visible }: { visible: boolean }) {
               <span
                 className={cn(
                   "text-sm transition-colors duration-300",
-                  isDone
-                    ? "text-muted-foreground"
-                    : isActive
-                      ? "text-foreground font-medium"
-                      : "text-muted-foreground/50",
+                  isDone ? "text-muted-foreground" : isActive ? "text-foreground font-medium" : "text-muted-foreground/50",
                 )}
               >
                 {s.label}
               </span>
+              {isActive && <span className="text-[10px] text-primary animate-pulse ml-auto">In progress&hellip;</span>}
             </div>
           );
         })}
       </div>
+    </motion.div>
+  );
+}
+
+function SidebarCard() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 sticky top-20">
+      <div className="flex items-center gap-2 mb-4">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <span className="text-sm font-semibold text-foreground">How it works</span>
+      </div>
+      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+        <p>
+          <span className="text-foreground font-medium">1. Fill the brief</span>
+          <br />The more detail you provide, the sharper the AI analysis will be.
+        </p>
+        <p>
+          <span className="text-foreground font-medium">2. AI analysis runs</span>
+          <br />Validify scores your idea against thousands of seed and Series&nbsp;A benchmarks.
+        </p>
+        <p>
+          <span className="text-foreground font-medium">3. Get your report</span>
+          <br />An investor-grade SWOT, market sizing, competitive landscape, and readiness score.
+        </p>
+      </div>
+      <div className="border-t border-border/50 my-4" />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+          <span>Real-time streaming analysis</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+          <span>Export to PDF and PPT</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+          <span>Co-founder chat follow-up</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TipsCard() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Badge variant="default" className="text-[10px] px-1.5 py-0">
+          TIP
+        </Badge>
+        <span className="text-sm font-semibold text-foreground">Better results</span>
+      </div>
+      <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+        <li className="flex gap-2">
+          <span className="text-primary mt-0.5">&bull;</span>
+          Add competitor URLs for a comparative moat analysis
+        </li>
+        <li className="flex gap-2">
+          <span className="text-primary mt-0.5">&bull;</span>
+          Upload a pitch deck to extract key claims automatically
+        </li>
+        <li className="flex gap-2">
+          <span className="text-primary mt-0.5">&bull;</span>
+          Be specific about your audience for realistic TAM estimates
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function ScoredBadge({ label, value }: { label: string; value: number }) {
+  const color = value >= 70 ? "text-emerald-400" : value >= 40 ? "text-amber-400" : "text-rose-400";
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn("font-medium tabular-nums", color)}>{value}%</span>
     </div>
   );
 }
@@ -243,10 +326,7 @@ function Validate() {
         budget: budget || undefined,
         country: country || undefined,
         competitors: competitors
-          ? competitors
-              .split(",")
-              .map((c) => c.trim())
-              .filter(Boolean)
+          ? competitors.split(",").map((c) => c.trim()).filter(Boolean)
           : undefined,
         notes: notes || undefined,
       });
@@ -263,35 +343,26 @@ function Validate() {
   };
 
   const fieldCount = [
-    name.trim(),
-    industry,
-    problem.trim(),
-    audience.trim(),
-    businessModel,
-    budget.trim(),
-    country.trim(),
-    competitors.trim(),
-    notes.trim(),
+    name.trim(), industry, problem.trim(), audience.trim(), businessModel,
+    budget.trim(), country.trim(), competitors.trim(), notes.trim(),
   ].filter(Boolean).length;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+    <motion.div className="space-y-8" initial="hidden" animate="visible" variants={staggerContainer}>
+      <motion.div variants={fadeUp}>
+        <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/60">
           Validation
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[28px]">
-          Validate a new idea
-        </h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[28px]">Validate a new idea</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground leading-relaxed">
           Fill in the brief &mdash; Validify will run a full investor-grade analysis with SWOT,
           market sizing, and readiness scoring.
         </p>
-      </div>
+      </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         <form onSubmit={onSubmit} className="lg:col-span-2 space-y-6">
-          <div className="rounded-xl border border-border bg-card p-6">
+          <motion.div variants={fadeUp} className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="grid h-7 w-7 place-items-center rounded-md bg-primary/10 text-primary">
                 <Lightbulb className="h-3.5 w-3.5" />
@@ -301,17 +372,12 @@ function Validate() {
                 <p className="text-xs text-muted-foreground">Tell us about your startup</p>
               </div>
             </div>
-
             <div className="grid sm:grid-cols-2 gap-5">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">
                   Startup Name <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. My Startup"
-                />
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. My Startup" />
                 <FieldHint>A clear, memorable name for your venture.</FieldHint>
               </div>
               <div className="space-y-1.5">
@@ -322,73 +388,47 @@ function Validate() {
                   </SelectTrigger>
                   <SelectContent>
                     {industries.map((i) => (
-                      <SelectItem key={i} value={i}>
-                        {i}
-                      </SelectItem>
+                      <SelectItem key={i} value={i}>{i}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <FieldHint>Choose the closest category for benchmarking.</FieldHint>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <motion.div variants={fadeUp} className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="grid h-7 w-7 place-items-center rounded-md bg-emerald-500/10 text-emerald-400">
                 <Users className="h-3.5 w-3.5" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Problem &amp; Audience</h2>
-                <p className="text-xs text-muted-foreground">
-                  Define the problem you&apos;re solving
-                </p>
+                <p className="text-xs text-muted-foreground">Define the problem you&apos;re solving</p>
               </div>
             </div>
-
             <div className="space-y-5">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">
                   Problem Statement <span className="text-destructive">*</span>
                 </Label>
-                <Textarea
-                  value={problem}
-                  onChange={(e) => setProblem(e.target.value)}
-                  rows={3}
-                  placeholder="What painful, frequent problem are you solving — and for whom?"
-                />
+                <Textarea value={problem} onChange={(e) => setProblem(e.target.value)} rows={3} placeholder="What painful, frequent problem are you solving — and for whom?" />
                 <div className="flex items-center justify-between">
-                  <FieldHint>
-                    Describe the pain point, who experiences it, and why existing solutions fall
-                    short.
-                  </FieldHint>
-                  <span
-                    className={cn(
-                      "text-xs tabular-nums",
-                      problem.length > 0 && problem.length < 20
-                        ? "text-amber-400"
-                        : "text-muted-foreground",
-                    )}
-                  >
+                  <FieldHint>Describe the pain point, who experiences it, and why existing solutions fall short.</FieldHint>
+                  <span className={cn("text-xs tabular-nums", problem.length > 0 && problem.length < 20 ? "text-amber-400" : "text-muted-foreground")}>
                     {problem.length}/1000
                   </span>
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">Target Audience</Label>
-                <Input
-                  value={audience}
-                  onChange={(e) => setAudience(e.target.value)}
-                  placeholder="e.g. PMs at Series A SaaS companies"
-                />
-                <FieldHint>
-                  Who are your early adopters? Be specific about roles, company size, and industry.
-                </FieldHint>
+                <Input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. PMs at Series A SaaS companies" />
+                <FieldHint>Who are your early adopters? Be specific about roles, company size, and industry.</FieldHint>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <motion.div variants={fadeUp} className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="grid h-7 w-7 place-items-center rounded-md bg-amber-500/10 text-amber-400">
                 <Building2 className="h-3.5 w-3.5" />
@@ -398,19 +438,14 @@ function Validate() {
                 <p className="text-xs text-muted-foreground">Revenue model and market context</p>
               </div>
             </div>
-
             <div className="grid sm:grid-cols-2 gap-5">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">Business Model</Label>
                 <Select value={businessModel} onValueChange={setBusinessModel}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose model" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Choose model" /></SelectTrigger>
                   <SelectContent>
                     {businessModels.map((i) => (
-                      <SelectItem key={i} value={i}>
-                        {i}
-                      </SelectItem>
+                      <SelectItem key={i} value={i}>{i}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -420,12 +455,7 @@ function Validate() {
                 <Label className="text-sm font-medium">Budget</Label>
                 <div className="relative">
                   <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    placeholder="Available runway"
-                    className="pl-8"
-                  />
+                  <Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Available runway" className="pl-8" />
                 </div>
                 <FieldHint>Current funding, savings, or monthly burn.</FieldHint>
               </div>
@@ -433,19 +463,14 @@ function Validate() {
                 <Label className="text-sm font-medium">Country</Label>
                 <div className="relative">
                   <Globe className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    placeholder="e.g. United States"
-                    className="pl-8"
-                  />
+                  <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. United States" className="pl-8" />
                 </div>
                 <FieldHint>Primary market for your initial launch.</FieldHint>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <motion.div variants={fadeUp} className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="grid h-7 w-7 place-items-center rounded-md bg-indigo-500/10 text-indigo-400">
                 <AlertCircle className="h-3.5 w-3.5" />
@@ -455,21 +480,14 @@ function Validate() {
                 <p className="text-xs text-muted-foreground">Who else is in the space?</p>
               </div>
             </div>
-
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Competitor Links</Label>
-              <Input
-                value={competitors}
-                onChange={(e) => setCompetitors(e.target.value)}
-                placeholder="https://competitor1.com, https://competitor2.com"
-              />
-              <FieldHint>
-                Comma-separated URLs. The AI will analyze each competitor&apos;s positioning.
-              </FieldHint>
+              <Input value={competitors} onChange={(e) => setCompetitors(e.target.value)} placeholder="https://competitor1.com, https://competitor2.com" />
+              <FieldHint>Comma-separated URLs. The AI will analyze each competitor&apos;s positioning.</FieldHint>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <motion.div variants={fadeUp} className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="grid h-7 w-7 place-items-center rounded-md bg-sky-500/10 text-sky-400">
                 <FileText className="h-3.5 w-3.5" />
@@ -479,85 +497,33 @@ function Validate() {
                 <p className="text-xs text-muted-foreground">Notes, files, and supporting docs</p>
               </div>
             </div>
-
             <div className="space-y-5">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">Additional Notes</Label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  placeholder="Anything else the AI should know? Team background, traction, patents, etc."
-                />
+                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Anything else the AI should know? Team background, traction, patents, etc." />
                 <FieldHint>Context that might not fit in the fields above.</FieldHint>
               </div>
-
               <FileUpload files={files} onFiles={setFiles} />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
+          <motion.div variants={fadeUp} className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span>
-                <span className="font-medium text-foreground">{fieldCount}</span> of 9 fields filled
-              </span>
+              <span><span className="font-medium text-foreground">{fieldCount}</span> of 9 fields filled</span>
             </div>
             <Button type="submit" disabled={submitting} className="shadow-sm">
               {submitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing&hellip;
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing&hellip;</>
               ) : (
-                <>
-                  Run AI validation <ArrowRight className="ml-2 h-4 w-4" />
-                </>
+                <>Run AI validation <ArrowRight className="ml-2 h-4 w-4" /></>
               )}
             </Button>
-          </div>
+          </motion.div>
         </form>
 
         <aside className="space-y-5">
-          <div className="rounded-xl border border-border bg-card p-5 sticky top-20">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">How it works</span>
-            </div>
-            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p>
-                <span className="text-foreground font-medium">1. Fill the brief</span>
-                <br />
-                The more detail you provide, the sharper the AI analysis will be.
-              </p>
-              <p>
-                <span className="text-foreground font-medium">2. AI analysis runs</span>
-                <br />
-                Validify scores your idea against thousands of seed and Series&nbsp;A benchmarks.
-              </p>
-              <p>
-                <span className="text-foreground font-medium">3. Get your report</span>
-                <br />
-                An investor-grade SWOT, market sizing, competitive landscape, and readiness score.
-              </p>
-            </div>
-            <SectionDivider />
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                <span>Real-time streaming analysis</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                <span>Export to PDF and PPT</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                <span>Co-founder chat follow-up</span>
-              </div>
-            </div>
-          </div>
-
+          <SidebarCard />
           <AnimatePresence>
             {showProgress && (
               <motion.div
@@ -570,31 +536,9 @@ function Validate() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                TIP
-              </Badge>
-              <span className="text-sm font-semibold text-foreground">Better results</span>
-            </div>
-            <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-              <li className="flex gap-2">
-                <span className="text-primary mt-0.5">&bull;</span>
-                Add competitor URLs for a comparative moat analysis
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary mt-0.5">&bull;</span>
-                Upload a pitch deck to extract key claims automatically
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary mt-0.5">&bull;</span>
-                Be specific about your audience for realistic TAM estimates
-              </li>
-            </ul>
-          </div>
+          <TipsCard />
         </aside>
       </div>
-    </div>
+    </motion.div>
   );
 }

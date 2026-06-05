@@ -14,8 +14,12 @@ import {
   CheckCircle2,
   FileText,
   AlertCircle,
+  Sparkles,
+  ArrowUpRight,
+  GripVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -33,6 +37,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { staggerContainer, fadeUp } from "@/lib/motion";
+import { Sparkline, TrendBadge, BenchmarkChip } from "@/components/charts/Sparkline";
 
 export const Route = createFileRoute("/dashboard/pitch")({ component: Pitch });
 
@@ -102,6 +108,19 @@ const slideColors: Record<string, string> = {
   ask: "bg-primary/10 border-primary/30",
 };
 
+const slideAccents: Record<string, string> = {
+  title: "bg-violet-500",
+  problem: "bg-rose-500",
+  solution: "bg-emerald-500",
+  market: "bg-blue-500",
+  business_model: "bg-amber-500",
+  competition: "bg-orange-500",
+  traction: "bg-cyan-500",
+  team: "bg-pink-500",
+  financials: "bg-green-500",
+  ask: "bg-primary",
+};
+
 function SlideThumbnail({
   slide,
   index,
@@ -117,12 +136,13 @@ function SlideThumbnail({
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left rounded-lg border p-2.5 transition-all",
+        "w-full text-left rounded-lg border p-2.5 transition-all duration-200 relative overflow-hidden",
         active
-          ? "border-primary bg-accent"
+          ? "border-primary bg-accent/80 shadow-sm"
           : "border-border hover:border-border/60 hover:bg-accent/30",
       )}
     >
+      {active && <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary" />}
       <div className="flex items-start gap-2">
         <div
           className={cn(
@@ -153,29 +173,33 @@ function SlideView({
   total: number;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-8 min-h-[420px] flex flex-col">
-      <div className="text-xs text-muted-foreground mb-1 font-medium tracking-wide uppercase">
-        {SLIDE_TYPE_LABELS[slide.type] ?? slide.type}
+    <motion.div
+      key={index}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.25 }}
+      className="rounded-xl border border-border bg-card p-8 min-h-[420px] flex flex-col relative overflow-hidden"
+    >
+      <div className={cn("absolute top-0 left-0 right-0 h-1", slideAccents[slide.type] ?? "bg-primary")} />
+      <div className="flex items-center justify-between mb-4">
+        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 text-muted-foreground uppercase tracking-wider">
+          {SLIDE_TYPE_LABELS[slide.type] ?? slide.type}
+        </Badge>
+        <span className="text-[11px] text-muted-foreground/50 tabular-nums">{index + 1}/{total}</span>
       </div>
       <h2 className="text-xl font-bold mb-4 tracking-tight">{slide.title}</h2>
       <p className="text-sm text-muted-foreground leading-relaxed mb-4">{slide.content}</p>
       {slide.bullets && slide.bullets.length > 0 && (
         <ul className="space-y-2">
           {slide.bullets.map((b, i) => (
-            <li
-              key={i}
-              className="text-sm text-muted-foreground flex items-start gap-2.5 leading-relaxed"
-            >
+            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2.5 leading-relaxed">
               <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
               {b}
             </li>
           ))}
         </ul>
       )}
-      <div className="mt-auto pt-6 text-xs text-muted-foreground/50 text-center">
-        {index + 1} / {total}
-      </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -197,7 +221,6 @@ function DeckCard({
       animate={{ opacity: 1, y: 0 }}
       className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md transition-shadow"
     >
-      {/* Preview stripe */}
       <div className="h-2 flex">
         {deck.content.slice(0, 6).map((s, i) => (
           <div key={i} className={cn("flex-1", slideColors[s.type]?.split(" ")[0] ?? "bg-muted")} />
@@ -212,7 +235,7 @@ function DeckCard({
             <div>
               <div className="font-semibold text-sm">{deck.title}</div>
               <div className="text-xs text-muted-foreground">
-                {deck.content.length} slides · {new Date(deck.createdAt).toLocaleDateString()}
+                {deck.content.length} slides &middot; {new Date(deck.createdAt).toLocaleDateString()}
               </div>
             </div>
           </div>
@@ -300,9 +323,17 @@ function DeckViewer({
   const slides = deck.content;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-10rem)]">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-10rem)]"
+    >
       {/* Thumbnail sidebar */}
       <aside className="lg:w-56 shrink-0 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto p-1">
+        <div className="hidden lg:flex items-center gap-2 px-2 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <Presentation className="h-3.5 w-3.5" />
+          {slides.length} slides
+        </div>
         {slides.map((slide, i) => (
           <SlideThumbnail
             key={i}
@@ -342,7 +373,6 @@ function DeckViewer({
               <SlideView slide={slides[currentSlide]} index={currentSlide} total={slides.length} />
             </div>
 
-            {/* Slide navigation */}
             <div className="flex items-center justify-center gap-3 mt-4">
               <Button
                 variant="outline"
@@ -352,8 +382,6 @@ function DeckViewer({
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-
-              {/* Dot indicators */}
               <div className="flex gap-1.5">
                 {slides.map((_, i) => (
                   <button
@@ -366,7 +394,6 @@ function DeckViewer({
                   />
                 ))}
               </div>
-
               <Button
                 variant="outline"
                 size="sm"
@@ -379,7 +406,7 @@ function DeckViewer({
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -436,7 +463,6 @@ function Pitch() {
     },
   });
 
-  /* Progress simulation while generating */
   useEffect(() => {
     if (generateMutation.isPending) {
       const timer = setInterval(() => {
@@ -477,20 +503,22 @@ function Pitch() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <motion.div className="space-y-6" initial="hidden" animate="visible" variants={staggerContainer}>
+      <motion.div variants={fadeUp} className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Pitch Decks</h1>
-          <p className="text-sm text-muted-foreground">AI-generated, investor-ready in minutes.</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/60">
+            Pitch Decks
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[28px]">Pitch Decks</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Investor-ready decks from your validation reports.</p>
         </div>
         {hasReports && !showGenerate && (
           <Button onClick={() => setShowGenerate(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Sparkles className="mr-2 h-4 w-4" />
             Generate deck
           </Button>
         )}
-      </div>
+      </motion.div>
 
       {/* Generate panel */}
       {showGenerate && (
@@ -501,10 +529,10 @@ function Pitch() {
         >
           {generateMutation.isPending ? (
             <div className="space-y-4">
-              <h3 className="text-sm font-medium">Generating pitch deck…</h3>
+              <h3 className="text-sm font-medium">Generating pitch deck&hellip;</h3>
               <GenerationProgress step={progressStep} isComplete={false} />
               <p className="text-xs text-muted-foreground">
-                This usually takes a few seconds. Please don't close this page.
+                This usually takes a few seconds. Please don&apos;t close this page.
               </p>
             </div>
           ) : (
@@ -529,7 +557,7 @@ function Pitch() {
                   {generateMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating…
+                      Generating&hellip;
                     </>
                   ) : (
                     "Generate pitch deck"
@@ -546,38 +574,37 @@ function Pitch() {
 
       {/* Empty state */}
       {!hasDecks ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/20 grid place-items-center mb-4">
-            <Presentation className="h-8 w-8 text-primary" />
+        <motion.div variants={fadeUp} className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm">
+            <Presentation className="h-8 w-8 text-muted-foreground/60" />
           </div>
-          <h2 className="text-xl font-semibold mb-2">No pitch decks yet</h2>
-          <p className="text-sm text-muted-foreground max-w-md mb-8 leading-relaxed">
+          <h2 className="text-lg font-semibold">No pitch decks yet</h2>
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground leading-relaxed">
             {hasReports
               ? "Select a validated report and we'll turn it into a sleek, investor-ready pitch deck."
               : "Validate an idea first, then generate an investor-ready pitch deck from the report."}
           </p>
           {hasReports ? (
-            <Button onClick={() => setShowGenerate(true)}>
+            <Button className="mt-8" onClick={() => setShowGenerate(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Generate your first deck
             </Button>
           ) : (
-            <Link to="/dashboard/validate">
+            <Link to="/dashboard/validate" className="mt-8">
               <Button>
                 <FileText className="mr-2 h-4 w-4" />
                 Validate an idea
               </Button>
             </Link>
           )}
-        </div>
+        </motion.div>
       ) : (
         <>
-          {/* Generate banner when decks exist but user may want more */}
           {!showGenerate && (
-            <div className="rounded-xl border border-border bg-card/50 p-4 flex items-center justify-between">
+            <motion.div variants={fadeUp} className="rounded-xl border border-border bg-gradient-to-r from-card/80 to-card p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center">
-                  <FileText className="h-4 w-4 text-primary" />
+                  <Sparkles className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Have a new report?</p>
@@ -589,18 +616,14 @@ function Pitch() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setShowGenerate(true);
-                  setSelectedReportId("");
-                }}
+                onClick={() => { setShowGenerate(true); setSelectedReportId(""); }}
               >
                 <Plus className="mr-1 h-3 w-3" /> New deck
               </Button>
-            </div>
+            </motion.div>
           )}
 
-          {/* Deck grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div variants={fadeUp} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {decks.map((deck) => (
               <DeckCard
                 key={deck.id}
@@ -610,9 +633,9 @@ function Pitch() {
                 onDelete={() => deleteMutation.mutate(deck.id)}
               />
             ))}
-          </div>
+          </motion.div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }
