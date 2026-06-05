@@ -258,7 +258,7 @@ function SectorCard({
             className="h-9 w-9 rounded-lg grid place-items-center"
             style={{ backgroundColor: `${color}15`, borderColor: `${color}30`, borderWidth: 1 }}
           >
-            <Icon className="h-4 w-4" style={{ color }} />
+            <span style={{ color }}><Icon className="h-4 w-4" /></span>
           </div>
           <div>
             <div className="text-sm font-semibold">{name}</div>

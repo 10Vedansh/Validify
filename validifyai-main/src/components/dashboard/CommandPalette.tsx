@@ -12,9 +12,15 @@ import {
   Settings,
   ArrowRight,
   Command,
+  Gauge,
+  Users,
+  Download,
+  Clock,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/store/dashboard.store";
+import { usePreferencesStore } from "@/store/preferences.store";
 import { ROUTES } from "@/constants/routes";
 import { ease } from "@/lib/motion";
 
@@ -32,8 +38,10 @@ const defaultActions: Action[] = [
   { id: "overview", label: "Go to Overview", icon: LayoutDashboard, to: ROUTES.dashboard, shortcut: "G O" },
   { id: "validate", label: "New validation", description: "Run AI validation on a new idea", icon: Sparkles, to: ROUTES.validate, shortcut: "G V" },
   { id: "reports", label: "View Reports", description: "Browse validation reports", icon: FileText, to: ROUTES.reports, shortcut: "G R" },
-  { id: "cofounder", label: "Co-founder Chat", icon: Bot, to: ROUTES.cofounder, shortcut: "G C" },
+  { id: "readiness", label: "Investor Readiness", description: "Check your investor readiness score", icon: Gauge, to: ROUTES.readiness },
   { id: "pitch", label: "Pitch Decks", icon: Presentation, to: ROUTES.pitch },
+  { id: "cofounder", label: "Co-founder Chat", icon: Bot, to: ROUTES.cofounder, shortcut: "G C" },
+  { id: "team", label: "Team & Collaboration", icon: Users, to: ROUTES.team },
   { id: "trends", label: "View Trends", icon: TrendingUp, to: ROUTES.trends },
   { id: "settings", label: "Open Settings", icon: Settings, to: ROUTES.settings },
 ];
@@ -51,10 +59,23 @@ function fuzzyMatch(text: string, query: string): boolean {
 export function CommandPalette() {
   const navigate = useNavigate();
   const { commandPaletteOpen, setCommandPaletteOpen } = useDashboardStore();
+  const { recentSearches, addRecentSearch } = usePreferencesStore();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const allActions: Action[] = [
+    ...defaultActions,
+    ...(recentSearches.length > 0
+      ? recentSearches.map((s, i) => ({
+          id: `recent-${i}`,
+          label: s,
+          icon: Clock as typeof Search,
+          action: () => {},
+        }))
+      : []),
+  ];
 
   const filtered = query.trim()
     ? defaultActions.filter((a) => fuzzyMatch(a.label + " " + (a.description ?? ""), query))
@@ -63,11 +84,12 @@ export function CommandPalette() {
   const execute = useCallback(
     (action: Action) => {
       setCommandPaletteOpen(false);
+      if (query.trim()) addRecentSearch(query.trim());
       setQuery("");
       if (action.action) action.action();
       else if (action.to) navigate({ to: action.to });
     },
-    [navigate, setCommandPaletteOpen],
+    [navigate, setCommandPaletteOpen, addRecentSearch, query],
   );
 
   useEffect(() => {

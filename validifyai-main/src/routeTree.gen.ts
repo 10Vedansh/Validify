@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -17,14 +18,21 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardValidateRouteImport } from './routes/dashboard.validate'
 import { Route as DashboardTrendsRouteImport } from './routes/dashboard.trends'
+import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
+import { Route as DashboardReadinessRouteImport } from './routes/dashboard.readiness'
 import { Route as DashboardPitchRouteImport } from './routes/dashboard.pitch'
 import { Route as DashboardCofounderRouteImport } from './routes/dashboard.cofounder'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -62,6 +70,11 @@ const DashboardTrendsRoute = DashboardTrendsRouteImport.update({
   path: '/trends',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardTeamRoute = DashboardTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -70,6 +83,11 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
 const DashboardReportsRoute = DashboardReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardReadinessRoute = DashboardReadinessRouteImport.update({
+  id: '/readiness',
+  path: '/readiness',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardPitchRoute = DashboardPitchRouteImport.update({
@@ -88,11 +106,14 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
   '/dashboard/cofounder': typeof DashboardCofounderRoute
   '/dashboard/pitch': typeof DashboardPitchRoute
+  '/dashboard/readiness': typeof DashboardReadinessRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/trends': typeof DashboardTrendsRoute
   '/dashboard/validate': typeof DashboardValidateRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -101,11 +122,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
   '/dashboard/cofounder': typeof DashboardCofounderRoute
   '/dashboard/pitch': typeof DashboardPitchRoute
+  '/dashboard/readiness': typeof DashboardReadinessRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/trends': typeof DashboardTrendsRoute
   '/dashboard/validate': typeof DashboardValidateRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -116,11 +140,14 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
   '/dashboard/cofounder': typeof DashboardCofounderRoute
   '/dashboard/pitch': typeof DashboardPitchRoute
+  '/dashboard/readiness': typeof DashboardReadinessRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/trends': typeof DashboardTrendsRoute
   '/dashboard/validate': typeof DashboardValidateRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -132,11 +159,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/forgot-password'
     | '/login'
+    | '/onboarding'
     | '/register'
     | '/dashboard/cofounder'
     | '/dashboard/pitch'
+    | '/dashboard/readiness'
     | '/dashboard/reports'
     | '/dashboard/settings'
+    | '/dashboard/team'
     | '/dashboard/trends'
     | '/dashboard/validate'
     | '/dashboard/'
@@ -145,11 +175,14 @@ export interface FileRouteTypes {
     | '/'
     | '/forgot-password'
     | '/login'
+    | '/onboarding'
     | '/register'
     | '/dashboard/cofounder'
     | '/dashboard/pitch'
+    | '/dashboard/readiness'
     | '/dashboard/reports'
     | '/dashboard/settings'
+    | '/dashboard/team'
     | '/dashboard/trends'
     | '/dashboard/validate'
     | '/dashboard'
@@ -159,11 +192,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/forgot-password'
     | '/login'
+    | '/onboarding'
     | '/register'
     | '/dashboard/cofounder'
     | '/dashboard/pitch'
+    | '/dashboard/readiness'
     | '/dashboard/reports'
     | '/dashboard/settings'
+    | '/dashboard/team'
     | '/dashboard/trends'
     | '/dashboard/validate'
     | '/dashboard/'
@@ -174,6 +210,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   RegisterRoute: typeof RegisterRoute
 }
 
@@ -184,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -235,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTrendsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/team': {
+      id: '/dashboard/team'
+      path: '/team'
+      fullPath: '/dashboard/team'
+      preLoaderRoute: typeof DashboardTeamRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/settings': {
       id: '/dashboard/settings'
       path: '/settings'
@@ -247,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/dashboard/reports'
       preLoaderRoute: typeof DashboardReportsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/readiness': {
+      id: '/dashboard/readiness'
+      path: '/readiness'
+      fullPath: '/dashboard/readiness'
+      preLoaderRoute: typeof DashboardReadinessRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/pitch': {
@@ -269,8 +327,10 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardCofounderRoute: typeof DashboardCofounderRoute
   DashboardPitchRoute: typeof DashboardPitchRoute
+  DashboardReadinessRoute: typeof DashboardReadinessRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTrendsRoute: typeof DashboardTrendsRoute
   DashboardValidateRoute: typeof DashboardValidateRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -279,8 +339,10 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCofounderRoute: DashboardCofounderRoute,
   DashboardPitchRoute: DashboardPitchRoute,
+  DashboardReadinessRoute: DashboardReadinessRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardTeamRoute: DashboardTeamRoute,
   DashboardTrendsRoute: DashboardTrendsRoute,
   DashboardValidateRoute: DashboardValidateRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -295,6 +357,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport

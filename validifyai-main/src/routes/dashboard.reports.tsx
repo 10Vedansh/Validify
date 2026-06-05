@@ -23,17 +23,25 @@ import {
   Sparkles,
   ArrowUpRight,
   ChevronRight,
+  ChevronDown,
+  Brain,
+  Zap,
+  RefreshCw,
+  ExternalLink,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
 } from "recharts";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { chartColors, chartTooltip } from "@/components/charts/theme";
 import { ease, staggerContainer, fadeUp } from "@/lib/motion";
 import { Sparkline, TrendBadge, BenchmarkChip } from "@/components/charts/Sparkline";
+import { ExportCenter } from "@/components/dashboard/ExportCenter";
+import { useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 
 export const Route = createFileRoute("/dashboard/reports")({ component: Reports });
@@ -107,12 +115,46 @@ function BentoCard({
   );
 }
 
+function CollapsibleSection({ title, icon: Icon, children, defaultOpen = true }: { title: string; icon: ComponentType<{ className?: string }>; children: ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between p-5 hover:bg-accent/20 transition-colors">
+        <div className="flex items-center gap-2">
+          <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="h-3.5 w-3.5" />
+          </div>
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        </div>
+        <ChevronDown className={cn("h-4 w-4 text-muted-foreground/60 transition-transform duration-200", open && "rotate-180")} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+            <div className="px-5 pb-5">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AiActionButton({ icon: Icon, label, onClick }: { icon: ComponentType<{ className?: string }>; label: string; onClick?: () => void }) {
+  return (
+    <button onClick={onClick} className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/50 px-2.5 py-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:border-border hover:bg-accent/30 transition-all">
+      <Icon className="h-3 w-3" />
+      {label}
+    </button>
+  );
+}
+
 function Reports() {
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
     queryFn: () => reportsService.list(),
   });
   const navigate = useNavigate();
+  const [showExport, setShowExport] = useState(false);
 
   if (isLoading) {
     return (
@@ -211,10 +253,9 @@ function Reports() {
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="h-8" onClick={() => reportsService.exportPdf(report.id)}>
-              <Download className="mr-1.5 h-3.5 w-3.5" /> PDF
+            <Button variant="outline" size="sm" className="h-8" onClick={() => { setShowExport(true); }}>
+              <Download className="mr-1.5 h-3.5 w-3.5" /> Export
             </Button>
-            <Button variant="outline" size="sm" className="h-8"><FileText className="mr-1.5 h-3.5 w-3.5" /> PPT</Button>
             <Button size="sm" className="h-8 shadow-sm"><Share2 className="mr-1.5 h-3.5 w-3.5" /> Share</Button>
           </div>
         </div>
@@ -281,6 +322,11 @@ function Reports() {
                     </li>
                   ))}
                 </ul>
+                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border/40">
+                  <AiActionButton icon={Brain} label="Explain further" />
+                  <AiActionButton icon={Zap} label="Improve this" />
+                  <AiActionButton icon={Target} label="Generate strategy" />
+                </div>
               </div>
             ))}
           </div>
@@ -429,15 +475,44 @@ function Reports() {
         </motion.div>
       )}
 
+      {/* Export modal */}
+      <AnimatePresence>
+        {showExport && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => setShowExport(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExportCenter onClose={() => setShowExport(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Footer */}
       <motion.div variants={fadeUp} className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
             Report ID: {report.id} &middot; Created {new Date(report.createdAt).toLocaleDateString()}
           </div>
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => reportsService.exportPdf(report.id)}>
-            <Download className="mr-1 h-3 w-3" /> Export PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowExport(true)}>
+              <Download className="mr-1 h-3 w-3" /> Export
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => reportsService.exportPdf(report.id)}>
+              <ExternalLink className="mr-1 h-3 w-3" /> Quick PDF
+            </Button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

@@ -239,3 +239,60 @@
 .animate-float { animation: float 4s infinite ease-in-out; }
 .animate-float-delayed { animation: float-delayed 5s infinite ease-in-out; }
 .animate-float-slow { animation: float-slow 6s infinite ease-in-out; }
+
+.light {
+  --background: oklch(0.98 0.003 260);
+  --foreground: oklch(0.18 0.006 275);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.006 275);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.006 275);
+  --primary-lighter: oklch(0.75 0.18 280);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.92 0.005 275);
+  --secondary-foreground: oklch(0.18 0.006 275);
+  --muted: oklch(0.93 0.005 275);
+  --muted-foreground: oklch(0.55 0.015 265);
+  --muted-lighter: oklch(0.65 0.01 265);
+  --accent: oklch(0.92 0.008 275);
+  --accent-foreground: oklch(0.18 0.006 275);
+  --border: oklch(0 0 0 / 8%);
+  --border-lighter: oklch(0 0 0 / 4%);
+  --input: oklch(0 0 0 / 6%);
+  --ring: oklch(0.65 0.22 280 / 30%);
+  --sidebar: oklch(0.96 0.003 275);
+  --sidebar-foreground: oklch(0.18 0.006 275);
+  --sidebar-accent: oklch(0.90 0.008 275);
+  --sidebar-border: oklch(0 0 0 / 6%);
+  --glass: oklch(1 0 0 / 0.7);
+  --glass-border: oklch(0 0 0 / 6%);
+  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.06);
+  --shadow-sm: 0 2px 4px -1px oklch(0 0 0 / 0.08), 0 1px 0 0 oklch(1 0 0 / 0.5) inset;
+  --shadow-md: 0 4px 16px -4px oklch(0 0 0 / 0.10), 0 1px 0 0 oklch(1 0 0 / 0.5) inset;
+  --shadow-lg: 0 8px 32px -8px oklch(0 0 0 / 0.12), 0 1px 0 0 oklch(1 0 0 / 0.5) inset;
+  --shadow-xl: 0 16px 48px -12px oklch(0 0 0 / 0.15), 0 1px 0 0 oklch(1 0 0 / 0.5) inset;
+  --shadow-glow: 0 0 24px -4px oklch(0.65 0.22 280 / 0.12);
+}
+
+html.light { color-scheme: light; }
+.light .dot-pattern { background-image: radial-gradient(oklch(0 0 0 / 0.04) 1px, transparent 1px); }
+.light .grid-pattern {
+  background-image: linear-gradient(to right, oklch(0 0 0 / 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0 0 0 / 0.02) 1px, transparent 1px);
+}
+
+@keyframes slide-up {
+  0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes slide-down {
+  0% { opacity: 0; transform: translateY(-12px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes scale-in {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-slide-up { animation: slide-up 0.35s ease-out; }
+.animate-slide-down { animation: slide-down 0.3s ease-out; }
+.animate-scale-in { animation: scale-in 0.25s ease-out; }
